@@ -17,6 +17,12 @@ const FormItem = Form.Item;
 class Login extends Component {
 
 
+  handleGetImgCode(){
+      const { dispatch } = this.props;
+      dispatch({
+          type: 'login/getCode'
+      })
+  }
 
   handleSubmit = e => {
     const { login, form, dispatch } = this.props;
@@ -44,8 +50,8 @@ class Login extends Component {
             <Form onSubmit={this.handleSubmit} className="login-form">
               <div className="user-img">
                 <img src={logoImg} alt="logo" />
-                <b>蒋海萍</b>
-                <span></span>
+                {/*<b>蒋海萍</b>*/}
+                {/*<span></span>*/}
               </div>
               <FormItem>
                 {getFieldDecorator('username', {
@@ -80,12 +86,14 @@ class Login extends Component {
                     })(
                         <Input
                             size="large"
+                            autoComplete="off"
                             placeholder="验证码"
                         />
                     )}
-                    <img style={{
+                    <img onClick={()=>{this.handleGetImgCode()}} style={{
+                        cursor: 'pointer',
                         position: 'absolute',
-                        right: '0px',
+                        right: '1px',
                         top: '2px',
                         bottom: '0px' }} src={`data:image/png;base64,${login.user.img}`}/>
                 </div>

@@ -25,6 +25,7 @@ export default (self, employees) => [
     {
         title: '顺番',
         dataIndex: 'key',
+        align: 'center',
         render: (tags) => (
             <span style={{textAlign: 'center'}}>{tags}</span>
         ),
@@ -43,14 +44,14 @@ export default (self, employees) => [
     },
     {
         title: '日期',
-        dataIndex: 'createTime',
+        dataIndex: 'relateDate',
+        render: (tags) => {
+            const rData = new Date(tags).toLocaleDateString().replace(/\//g,".");
+            return <span>{rData}</span>
+        }
     },
     {
         title: '时间',
-        dataIndex: 'relateDate',
-    },
-    {
-        title: '导入时间',
-        dataIndex: 'updateTime',
+        dataIndex: 'time',
     }
 ];

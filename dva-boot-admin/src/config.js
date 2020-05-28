@@ -2,6 +2,7 @@ import React from 'react';
 import PageLoading from 'components/Loading/PageLoading';
 import { normal } from 'components/Notification';
 import store from 'cmn-utils/lib/store';
+import $$ from "cmn-utils/lib/index";
 
 // 系统通知, 定义使用什么风格的通知，normal或antdNotice
 const notice = normal;
@@ -40,12 +41,21 @@ export default {
          * 成功失败标识来进行区分
          */
         afterResponse: response => {
-            console.log('afterResponse:',response)
-            if ((response && response.code === 200) || response.status) {
+            console.log('afterResponse:',response);
+            const { code, status, message, msg } = response;
+            if ((response && code === 200) || (response && status)) {
                 return response;
             } else {
-                // throw new Error('error' || message);
+                notice.error(msg || message || 'error');
+                switch (code) {
+                    case 401:
+                        // $$.removeStore('Token');
+                        // window.location.href = '/sign/login';
+                        break;
+                }
+                // throw new Error(msg || message || 'error');
             }
+
             // const { status, message } = response;
             // if (status) {
             //     return response;

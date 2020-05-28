@@ -58,8 +58,7 @@ export default class CardLayout extends React.PureComponent {
   // 检查有户是否登录
   checkLoginState() {
     // const user = $$.getStore('user');
-      const user = $$.getStore('Token');
-      alert(user)
+    const user = $$.getStore('Token');
     if (!user) {
       this.props.dispatch(routerRedux.replace('/sign/login'));
     }

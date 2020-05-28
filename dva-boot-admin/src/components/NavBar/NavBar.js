@@ -82,6 +82,8 @@ class NavBar extends PureComponent {
       isMobile
     } = this.props;
 
+    console.log('navbar:',user, this.props);
+
     const classnames = cx('navbar', {
       'navbar-fixed-top': !!fixed,
       'navbar-sm': isMobile ? true : collapsed,
@@ -93,8 +95,8 @@ class NavBar extends PureComponent {
         <div className="navbar-branding">
           <Link className="navbar-brand" to="/">
             <img src={logoImg} alt="logo" />
-            <b>HHH</b>
-            Admin
+            {/*<b>HHH</b>*/}
+            {/*Admin*/}
           </Link>
           <span className="toggle_sidemenu_l" onClick={onCollapseLeftSide}>
             <Icon type="lines" />
@@ -112,7 +114,8 @@ class NavBar extends PureComponent {
               trigger="click"
             >
               <a className="dropdown-toggle">
-                <Badge dot>
+                {/*<Badge dot>*/}
+                <Badge>
                   <Avatar src={require('assets/images/avatar.jpg')}>
                     {user.userName}
                   </Avatar>

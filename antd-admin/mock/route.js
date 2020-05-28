@@ -5,9 +5,9 @@ const database = [
   {
     id: '1',
     icon: 'dashboard',
-    name: 'Dashboard',
+    name: 'Dashboard123123',
     zh: {
-      name: '仪表盘'
+      name: '仪表盘123123'
     },
     'pt-br': {
       name: 'Dashboard'

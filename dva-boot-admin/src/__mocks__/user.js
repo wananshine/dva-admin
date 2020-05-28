@@ -1,4 +1,5 @@
 import ProductionLinePosition from "../routes/SystemSettings/ProductionLinePosition";
+import DataDictionary from "../routes/SystemSettings/DataDictionary";
 
 /**
  * 模拟请求数据
@@ -20,7 +21,6 @@ export default ({fetchMock, delay, mock, toSuccess, toError}) => {
 
   return {
     '/api/user/login': (options) => {
-        console.log('options:', options)
         if (options.body) {
 
         } else {
@@ -29,31 +29,31 @@ export default ({fetchMock, delay, mock, toSuccess, toError}) => {
     },
     '/api/user/register': options => toSuccess(),
     '/api/user/menu': options => toSuccess([
-	{
-          name: '数据源管理',
-          icon: 'DeploymentUnitOutlined',
-          path: '/DataSourceManage',
-      },
-      {
-          name: '生产看板',
-          icon: 'ReconciliationOutlined',
-          path: '/ProductionCard',
-      },
-      {
-          name: '仓库输入',
-          icon: 'FormOutlined',
-          path: '/WarehouseInput'
-      },
-      {
-        name: '数据检查',
-        icon: 'FundViewOutlined',
-        path: '/DataCheck'
-      },
-      {
-          name: '任务管理',
-          icon: 'AuditOutlined',
-          path: '/TaskManage'
-      },
+        {
+            name: '数据源管理',
+            icon: 'DeploymentUnitOutlined',
+            path: '/data_source_manage',
+        },
+        {
+            name: '生产看板',
+            icon: 'ReconciliationOutlined',
+            path: '/production_card',
+        },
+        {
+            name: '仓库输入',
+            icon: 'FormOutlined',
+            path: '/warehouse_input'
+        },
+        {
+            name: '数据检查',
+            icon: 'FundViewOutlined',
+            path: '/data_check'
+        },
+        {
+            name: '任务管理',
+            icon: 'AuditOutlined',
+            path: '/task_manage'
+        },
       {
           name: '系统设置',
           icon: 'SettingOutlined',
@@ -62,22 +62,22 @@ export default ({fetchMock, delay, mock, toSuccess, toError}) => {
               {
                   name: '权限管理',
                   icon: 'LockOutlined',
-                  path: '/RulesManage',
+                  path: '/rules_manage',
               },
               {
                   name: '数据字典',
                   icon: 'BoxPlotOutlined',
-                  path: '/DataDictionary',
+                  path: '/data_dictionary/:detail?',
               },
               {
                   name: '位置信息',
                   icon: 'EnvironmentOutlined',
-                  path: '/LocationInformation',
+                  path: '/location_information',
               },
               {
                   name: '产线位置对应',
                   icon: 'BoxPlotOutlined',
-                  path: '/ProductionLinePosition',
+                  path: '/production_line_position',
               }
           ],
       }

@@ -1,8 +1,10 @@
-import { routerRedux } from 'dva';
-import { ApiWareHouseList, ApiWareHouseUpdate } from '../service';
-import $$ from 'cmn-utils';
 import modelEnhance from '@/utils/modelEnhance';
 import PageHelper from '@/utils/pageHelper';
+import { routerRedux } from 'dva';
+import $$ from 'cmn-utils';
+import { ApiWareHouseList, ApiWareHouseSave, ApiWareHouseUpdate, ApiWareHouseDel } from '../service';
+import {ApiLocInfo, ApiProductionLineInfo, ApiProductionLineLoc2Info} from "../../SystemSettings/ProductionLinePosition/service";
+
 
 
 /**
@@ -22,18 +24,24 @@ export default modelEnhance({
     subscriptions: {
         setup({ dispatch, history }) {
             history.listen(({ pathname }) => {
-                if (pathname === '/WarehouseInput' && !LOADED) {
+                const url = '/warehouse_input';
+                if (pathname === url && !LOADED) {
                     LOADED = true;
                     dispatch({
                         type: 'init',
                         payload: {
-                            pageData: [],
                             pageNum: 1,
                             pageSize: 10,
-                            startDate: '',
-                            endDate: ''
+                            startDate: new Date().toLocaleDateString().replace(/\//g,"."),
+                            endDate: new Date().toLocaleDateString().replace(/\//g,"."),
+                            // startDate:'',
+                            // endDate: '',
+                            partName: '',
+                            line: '',
                         },
                     });
+                }else if(pathname !== url){
+                    LOADED = false;
                 }
             });
         }
@@ -42,7 +50,6 @@ export default modelEnhance({
     effects: {
         // 进入页面加载
         *init({ payload }, { call, put, select }) {
-            console.log('payload:',payload);
             const response = yield call(ApiWareHouseList, payload);
             if(response && response.code === 200){
                 yield put({
@@ -53,6 +60,38 @@ export default modelEnhance({
                         pageSize: payload.pageSize,
                         startDate: payload.startDate || '',
                         endDate: payload.endDate || '',
+                        partName: payload.partName || '',
+                        line: payload.line || '',
+                    },
+                });
+            }
+
+            const result = yield call(ApiProductionLineInfo, {
+                dictType: 'warehouse_line',
+                pageNum: '',
+                pageSize: ''
+            });
+            if(result && result.code === 200){
+                yield put({
+                    type: 'dataLineSuccess',
+                    payload: {
+                        lineOptions: result.rows,
+                        lineTotal: result.total
+                    },
+                })
+            }
+
+            const data = yield call(ApiProductionLineInfo, {
+                dictType: 'warehouse_partName',
+                pageNum: '',
+                pageSize: ''
+            });
+            if(data && data.code === 200){
+                yield put({
+                    type: 'dataPartNameSuccess',
+                    payload: {
+                        pNameOptions: data.rows,
+                        pNameTotal: data.total
                     },
                 });
             }
@@ -69,6 +108,8 @@ export default modelEnhance({
                         pageSize: payload.pageSize,
                         startDate: payload.startDate || '',
                         endDate: payload.endDate || '',
+                        partName: payload.partName || '',
+                        line: payload.line || '',
                     },
                 });
             }
@@ -77,32 +118,64 @@ export default modelEnhance({
         *save({ payload }, { call, put, select, take }) {
 
             try {
-                const response = yield call(ApiWareHouseUpdate, payload);
+                const response = yield call(ApiWareHouseSave, payload);
                 console.log(response)
+                const res = yield select(state => state.warehouse);
+                yield put({
+                    type: 'getPageInfo',
+                    payload: res
+                });
             } catch (e) {
 
             }
         },
+
         // 修改
-        *update({ payload }, { call, put }) {
+        *update({ payload }, { call, put, select }) {
+            try {
+                const response = yield call(ApiWareHouseUpdate, payload);
+                console.log('update:',response);
+                const res = yield select(state => state.warehouse);
+                yield put({
+                    type: 'getPageInfo',
+                    payload: res
+                });
+
+
+            } catch (e) {
+
+            }
         },
         // 删除 之后查询分页
         *remove({ payload }, { call, put, select }) {
-            const { records, success } = payload;
-            const { pageData } = yield select(state => state.warehouse);
-            yield put({
-                type: '@request',
-                payload: {
-                    notice: true,
-                    url: '/warehouse/bathDelete',
-                    data: records.map(item => item.id)
-                }
-            });
-            yield put({
-                type: 'getPageInfo',
-                payload: { pageData }
-            });
-            success();
+
+            try {
+                const response = yield call(ApiWareHouseDel, payload);
+                console.log('ApiWareHouseDel',response, payload);
+                const res = yield select(state => state.warehouse);
+                yield put({
+                    type: 'getPageInfo',
+                    payload: res
+                });
+
+            } catch (e) {
+
+            }
+            // const { records, success } = payload;
+            // const { pageData } = yield select(state => state.warehouse);
+            // yield put({
+            //     type: '@request',
+            //     payload: {
+            //         notice: true,
+            //         url: '/warehouse/bathDelete',
+            //         data: records.map(item => item.id)
+            //     }
+            // });
+            // yield put({
+            //     type: 'getPageInfo',
+            //     payload: { pageData }
+            // });
+            // success();
         },
         // 获取员工列表
         *getEmployees({ payload }, { call, put }) {
@@ -114,6 +187,27 @@ export default modelEnhance({
             //         url: '/warehouse/getWorkEmployee'
             //     }
             // });
+        },
+
+        //Line 联动
+        *getLines({ payload }, { call, put }){
+
+            try {
+                const response = yield call(ApiProductionLineLoc2Info, payload);
+                if(response && response.code === 200){
+                    yield put({
+                        type: 'dataLocSuccess',
+                        payload: {
+                            ...payload,
+                            locOptions: response.rows,
+                        },
+                    });
+                }
+
+            } catch (e) {
+
+            }
+            //
         }
     },
 
@@ -126,7 +220,27 @@ export default modelEnhance({
                 pageSize: payload.pageSize,
                 startDate: payload.startDate || '',
                 endDate: payload.endDate || '',
+                partName: payload.partName || '',
+                line: payload.line || '',
             };
         },
+        dataLineSuccess(state, { payload }) {
+            return {
+                ...state,
+                lineData: payload
+            };
+        },
+        dataLocSuccess(state, { payload }) {
+            return {
+                ...state,
+                ...payload
+            };
+        },
+        dataPartNameSuccess(state, { payload }){
+            return {
+                ...state,
+                pNameData: payload
+            };
+        }
     }
 });

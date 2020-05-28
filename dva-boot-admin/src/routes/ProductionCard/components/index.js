@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'dva';
-import { Layout, Card, Row, Col, Form, DatePicker, Input, Button, Select, Table, Tag, Space, Pagination   } from 'antd';
+import { Layout, Card, Row, Col, Form, DatePicker, Input, Button, Select, Divider, Table, Tag, Space, Pagination   } from 'antd';
 import moment from 'moment';
 import BaseComponent from 'components/BaseComponent';
 import style from './index.module.less';
@@ -48,42 +48,25 @@ export default class extends BaseComponent {
     //查询
     onFinish = values => {
         const { DataProduct, dispatch } = this.props;
-        if(![undefined].includes(values.datepicker)){
-            console.log('have',values);
-            const obj = {
-                startDate: [null].includes(values.datepicker) ? '' : values.datepicker[0]._d.toLocaleDateString().replace(/\//g,"."),
-                endDate: [null].includes(values.datepicker) ? '' : values.datepicker[1]._d.toLocaleDateString().replace(/\//g,"."),
-                time: values.time || '',
-                partName: values.partName || '',
-                line: values.line || '',
-                lotNo: values.lotNo || ''
-            };
-            dispatch({
-                type: 'DataProduct/getPageInfo',
-                payload: {
-                    ...DataProduct,
-                    ...obj,
-                }
-            });
-            return;
-        }
+        const startData = [undefined].includes(values.datepicker) ? this.getStartDate() : ([null].includes(values.datepicker) ? '' : values.datepicker[0]._d.toLocaleDateString().replace(/\//g,"."));
+        const endData = [undefined].includes(values.datepicker) ? this.getEndData() : ([null].includes(values.datepicker) ? '' : values.datepicker[1]._d.toLocaleDateString().replace(/\//g,"."));
 
-        const obj = {
-            startDate: this.getStartDate() || '',
-            endDate: this.getEndData() || '',
+        const object = {
+            startDate: startData || '',
+            endDate: endData || '',
             time: values.time || '',
             partName: values.partName || '',
-            line: values.line || '',
+            line: values.lineId || '',
             lotNo: values.lotNo || ''
         };
+
         dispatch({
             type: 'DataProduct/getPageInfo',
             payload: {
                 ...DataProduct,
-                ...obj,
+                ...object,
             }
-        });
-        console.log('nohave',this.getStartDate(), this.getEndData())
+        })
 
     };
 
@@ -93,15 +76,18 @@ export default class extends BaseComponent {
 
   render() {
       const { DataProduct, loading, dispatch } = this.props;
-      const { pageData, pageNum, pageSize, employees } = DataProduct;
+      const { pageData, pageNum, pageSize, pNameData, lineData, employees } = DataProduct;
       const { total, rows } = pageData;
+      const lineOptions = (lineData && lineData.lineOptions) || [];
+      const pNameOptions = (pNameData && pNameData.pNameOptions) || [];
 
+      console.log('DataProduct:',DataProduct)
       //时间格式
       const dateFormat = 'YYYY/MM/DD';
 
       //表数据
       const dataSource = rows && rows.map((v, i)=>{
-          v.key =  Number(i + 1) + (Number(pageNum) * Number(pageSize)) - 10;
+          v.key =  Number(i + 1) + (Number(pageNum) * Number(pageSize)) - Number(pageSize);
           return v;
       });
 
@@ -114,15 +100,6 @@ export default class extends BaseComponent {
           "21:00","22:00","23:00","00:00"
       ];
 
-      const partNames = [
-          { txt: 'XSW', val: 'XSW' },
-          { txt: 'XAW', val: 'XAW' },
-      ];
-
-      const Lines = [
-          { txt: '30', val: '30' },
-          { txt: '50', val: '50' },
-      ];
 
       const lotNos = [
           { txt: 'XSW', val: 'XSW' },
@@ -160,22 +137,22 @@ export default class extends BaseComponent {
                           <Col span={6}>
                               <Form.Item label="品名：" name="partName">
                                   {/*defaultValue=""*/}
-                                  <Select placeholder="请输入品名">
+                                  <Select placeholder="请选择品名">
                                       {
-                                          partNames.map((v, i)=>{
-                                              return <Option key={v.val} value={v.val}>{v.txt}</Option>
+                                          pNameOptions && pNameOptions.map((v, i)=>{
+                                              return <Option key={i.toString() + `${v.dictCode}`} value={v.dictValue}>{v.dictLabel}</Option>
                                           })
                                       }
                                   </Select>
                               </Form.Item>
                           </Col>
                           <Col span={6}>
-                              <Form.Item label="Line：" name="line">
+                              <Form.Item label="Line：" name="lineId">
                                   {/*defaultValue=""*/}
                                   <Select placeholder="请输入Line">
                                       {
-                                          Lines.map((v, i)=>{
-                                              return <Option key={v.val} value={v.val}>{v.txt}</Option>
+                                          lineOptions && lineOptions.map((v, i)=>{
+                                              return <Option key={i.toString() + `${v.dictCode}`} value={v.dictValue}>产线：{v.dictLabel}</Option>
                                           })
                                       }
                                   </Select>
@@ -183,14 +160,14 @@ export default class extends BaseComponent {
                           </Col>
                           <Col span={6}>
                               <Form.Item label="LotNo：" name="lotNo">
-                                  {/*defaultValue=""*/}
-                                  <Select placeholder="请输入LotNo">
-                                      {
-                                          lotNos.map((v, i)=>{
-                                              return <Option key={v.val} value={v.val}>{v.txt}</Option>
-                                          })
-                                      }
-                                  </Select>
+                                  <Input placeholder="请输入LotNo" autoComplete="off" />
+                                  {/*<Select defaultValue="" placeholder="请选择LotNo">*/}
+                                      {/*{*/}
+                                          {/*lotNos.map((v, i)=>{*/}
+                                              {/*return <Option key={v.val} value={v.val}>{v.txt}</Option>*/}
+                                          {/*})*/}
+                                      {/*}*/}
+                                  {/*</Select>*/}
                               </Form.Item>
                           </Col>
                       </Row>
@@ -203,12 +180,15 @@ export default class extends BaseComponent {
                   </Form>
               </Header>
 
+              <Divider />
+
               <Content className={style.className}>
                   <div>
-                      <br/>
                       <Table loading={loading} pagination={false} columns={columns} dataSource={dataSource} bordered size="middle" />
                   </div>
               </Content>
+
+              <br/>
 
               <Footer>
                   <Pagination

@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'dva';
-import { Layout, Card, Row, Col, Form, DatePicker, Input, Button, Table, Tag, Space, Pagination   } from 'antd';
+import { Layout, Card, Row, Col, Form, DatePicker, Input, Button, Divider, Table, Tag, Space, Pagination   } from 'antd';
 import moment from 'moment';
 import BaseComponent from 'components/BaseComponent';
 import style from './index.module.less';
@@ -202,7 +202,7 @@ export default class extends BaseComponent {
                         </Form>
                     </Header>
 
-                    <br />
+                    <Divider />
 
                     <Content className={style.className}>
                         <div>

@@ -115,24 +115,6 @@ const TreeList2 = (props)=>{
         }
     });
 
-    // const treeData = [
-    //     {
-    //         title: 'Expand to load',
-    //         key: '0',
-    //         children: [
-    //             {
-    //                 title: 'Expand to load',
-    //                 key: '0-4',
-    //             },
-    //             {
-    //                 title: 'Tree Node',
-    //                 key: '0-7',
-    //                 isLeaf: true,
-    //             },
-    //         ]
-    //     }
-    // ]
-
     return (
         <Tree
             showLine
@@ -140,7 +122,7 @@ const TreeList2 = (props)=>{
             defaultExpandedKeys={['0-0-0']}
             treeData={treeData}
             onSelect={()=>{ onSelect() }}
-        ></Tree>
+        />
     );
 }
 

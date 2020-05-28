@@ -25,7 +25,6 @@ const { Link } = router;
 
 export default (self, employees) => {
 
-    console.log('self', self)
     const { onEdit, onDeleteRecords } = self;
     const { dispatch } = self.props;
 
@@ -50,6 +49,10 @@ export default (self, employees) => {
             dataIndex: 'lotNo',
         },
         {
+            title: '起始位置',
+            dataIndex: 'locationName',
+        },
+        {
             title: '导入时间',
             dataIndex: 'updateTime',
         },
@@ -60,9 +63,17 @@ export default (self, employees) => {
             width: '180px',
             render: (text, record) => (
                 <div>
-                    <EditOutlined onClick={()=>{ onEdit(text, record) }} style={{fontSize: '18px', color: '#1890ff', margin: '0px 26px'}} />
+                    <EditOutlined onClick={
+                        ()=>{
+                            dispatch({
+                                type: 'warehouse/getLines',
+                                payload: { lineId: record.lineId }
+                            });
+                            onEdit(text, record)
+                        }
+                    } style={{fontSize: '18px', color: '#1890ff', margin: '0px 26px'}} />
 
-                    <DeleteOutlined onClick={()=>{ onDeleteRecords(record) }} style={{fontSize: '18px', color: '#1890ff'}} />
+                    <DeleteOutlined onClick={()=>{ onDeleteRecords(record, self) }} style={{fontSize: '18px', color: '#1890ff'}} />
                 </div>
             )
         }

@@ -1,8 +1,14 @@
 import modelEnhance from '@/utils/modelEnhance';
 import { routerRedux } from 'dva';
 import $$ from 'cmn-utils';
-import { ApiProductionLineUpdate, ApiProductionLocUpdate, ApiProductionLineInfo, ApiProductionLineLocInfo } from '../service'
-
+import {
+    ApiProductionLineUpdate,
+    ApiProductionLocUpdate,
+    ApiProductionLineInfo,
+    ApiProductionLineLocInfo,
+    ApiLocInfo,
+    ApiProductionLineLoc2Info
+} from '../service'
 
 /**
  * 当第一次加载完页面时为true
@@ -14,14 +20,13 @@ export default modelEnhance({
     namespace: 'productLine',
 
     state: {
-        pageData: {},
-        employees: []
     },
 
     subscriptions: {
         setup({ dispatch, history }) {
             history.listen(({ pathname }) => {
-                if (pathname === '/ProductionLinePosition' && !LOADED) {
+                const url = '/production_line_position';
+                if (pathname === url && !LOADED) {
                     LOADED = true;
                     dispatch({
                         type: 'init',
@@ -31,6 +36,8 @@ export default modelEnhance({
                             pageSize: 10
                         }
                     });
+                }else if(pathname !== url){
+                    LOADED = false;
                 }
             });
         }
@@ -39,48 +46,59 @@ export default modelEnhance({
     effects: {
         // 进入页面加载
         *init({ payload }, { call, put, select }) {
-            const response = yield call(ApiProductionLineInfo, payload);
-            if(response && response.code === 200){
+            const result = yield call(ApiLocInfo, payload);
+            if(result && result.code===200){
                 yield put({
-                    type: 'dataProductLineSuccess',
+                    type: 'dataLocSuccess',
                     payload: {
-                        proLine: {
-                            pageData: response,
-                            dictType: 'warehouse_line',
-                            pageNum: 1,
-                            pageSize: 10
-                        }
+                        pageData: result,
+                        pageNum: 1,
+                        pageSize: 10
                     },
                 });
+            }
 
-                const res = yield call(ApiProductionLineLocInfo, payload);
-                if(res && res.code===200){
-                    yield put({
-                        type: 'dataProductLocSuccess',
-                        payload: {
-                            proLoc: {
-                                pageData: res,
-                                pageNum: 1,
-                                pageSize: 10
-                            }
-                        },
-                    });
-                }
-
+            const response = yield call(ApiProductionLineLocInfo, payload);
+            if(response && response.code === 200){
+                yield put({
+                    type: 'dataLineSuccess',
+                    payload: {
+                        pageData: response,
+                        dictType: 'warehouse_line',
+                        pageNum: 1,
+                        pageSize: 10
+                    },
+                });
             }
         },
 
         // 获取分页数据
         *getPageInfo({ payload }, { call, put }) {
-            // const { pageData } = payload;
-            // yield put({
-            //     type: '@request',
-            //     payload: {
-            //         valueField: 'pageData',
-            //         url: '/warehouse/getList',
-            //         pageInfo: pageData
-            //     }
-            // });
+            console.log(payload);
+            const res = yield call(ApiLocInfo, payload);
+            if(res && res.code===200){
+                yield put({
+                    type: 'dataLocSuccess',
+                    payload: {
+                        ...payload,
+                        pageData: res
+                    },
+                });
+            }
+        },
+
+        //查询左侧位置信息2
+        *getPageInfo2({ payload }, { call, put, select }){
+            const response = yield call(ApiProductionLineLoc2Info, payload);
+            if(response && response.code === 200){
+                yield put({
+                    type: 'dataLocKeySuccess',
+                    payload: {
+                        selectKeys: response,
+                        lineId: payload.lineId,
+                    },
+                });
+            }
         },
 
         // 保存Loc 之后查询分页
@@ -161,19 +179,27 @@ export default modelEnhance({
             });
             success();
         },
+
+
     },
 
     reducers: {
-        dataProductLineSuccess(state, { payload }) {
+        dataLineSuccess(state, { payload }) {
             return {
                 ...state,
-                proLine: payload.proLine
+                proLine: payload
             };
         },
-        dataProductLocSuccess(state, { payload }) {
+        dataLocSuccess(state, { payload }) {
             return {
                 ...state,
-                proLoc: payload.proLoc
+                proLoc: {...payload}
+            };
+        },
+        dataLocKeySuccess(state, { payload }) {
+            return {
+                ...state,
+                proLocSelectedKeys: payload
             };
         },
     }

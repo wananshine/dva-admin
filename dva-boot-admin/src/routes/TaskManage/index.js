@@ -1,7 +1,7 @@
 import { dynamicWrapper, createRoute } from '@/utils/core';
 
 const routesConfig = app => ({
-  path: '/TaskManage',
+  path: '/task_manage',
   title: '任务管理',
   component: dynamicWrapper(app, [import('./model')], () => import('./components'))
 });

@@ -18,9 +18,10 @@ import TaskManage from './TaskManage'
 
 //系统设置
 import RulesManage from './SystemSettings/RulesManage';
-import locationInformation from './SystemSettings/locationInformation';
+import LocationInformation from './SystemSettings/LocationInformation';
 import ProductionLinePosition from './SystemSettings/ProductionLinePosition';
-import DataDictionary from './SystemSettings/DataDictionary'
+import DataDictionary from './SystemSettings/DataDictionary';
+import DataDictionaryDetail from './SystemSettings/DataDictionary/routers/Detail';
 
 /**
  * 主路由配置
@@ -42,28 +43,29 @@ const routesConfig = app => [
             // NotFound()
         ]
     },
-  {
-    path: '/',
-    title: '系统中心',
-    component: BasicLayout,
-    indexRoute: '/DataSourceManage',
-    childRoutes: [
-	  ProductionCard(app),
-	  DataManage(app),
-	  WarehouseInput(app),
-	  DataCheck(app),
-	  TaskManage(app),
-      RulesManage(app),
-      locationInformation(app),
-      ProductionLinePosition(app),
-      DataDictionary(app),
-	
-      // Blank(app),
-      Page403(),
-      Page500(),
-      NotFound()
-    ]
-  }
+    {
+        path: '/',
+        title: '系统中心',
+        component: BasicLayout,
+        indexRoute: '/data_source_manage',
+        childRoutes: [
+          ProductionCard(app),
+          DataManage(app),
+          WarehouseInput(app),
+          DataCheck(app),
+          TaskManage(app),
+          RulesManage(app),
+          LocationInformation(app),
+            ProductionLinePosition(app),
+          DataDictionary(app),
+          DataDictionaryDetail(app),
+
+          // Blank(app),
+          Page403(),
+          Page500(),
+          NotFound()
+        ]
+    }
 ];
 
 export default app => createRoutes(app, routesConfig);

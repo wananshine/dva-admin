@@ -1,6 +1,7 @@
 import React from 'react';
 import { connect } from 'dva';
-import { Layout, Card, Row, Col, Form, Input, Button, Table, Space, Pagination, Modal   } from 'antd';
+import { Layout, Card, Row, Col, Form, Input, Button, Divider, Table, Space, Pagination, Modal   } from 'antd';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import BaseComponent from 'components/BaseComponent';
 import style from './index.module.less';
@@ -78,17 +79,23 @@ export default class extends BaseComponent {
         console.log(record)
     };
 
+    onCancel = ()=>{
+        alert(1)
+    }
+
     //del确认警告
     onShowModal = record =>{
         const _this = this;
-        Modal.warning({
+        Modal.confirm({
             title: '删除提示',
             content: '是否确认删除此笔数据？',
+            icon: <ExclamationCircleOutlined />,
             okText: '确认',
             cancelText: '取消',
             onOk(){
                 _this.onDelete(record);
-            }
+            },
+            onCancel(){}
         });
     }
 
@@ -100,7 +107,7 @@ export default class extends BaseComponent {
 
         //表数据
         const dataSource = rows && rows.map((v, i)=>{
-            v.key =  Number(i + 1) + (Number(pageNum) * Number(pageSize)) - 10;
+            v.key =  Number(i + 1) + (Number(pageNum) * Number(pageSize)) - Number(pageSize);
             return v;
         });
 
@@ -117,7 +124,7 @@ export default class extends BaseComponent {
                         }>
                             <Row gutter={16}>
                                 <Col span={6}>
-                                    <Form.Item label="位置名称：" name="locationName">
+                                    <Form.Item label="位置名称：" name="locationName" autoComplete="off">
                                         <Input placeholder='请输入位置名称'/>
                                     </Form.Item>
                                 </Col>
@@ -125,12 +132,12 @@ export default class extends BaseComponent {
 
                             <Row gutter={16}>
                                 <Col span={6}>
-                                    <Form.Item label="X轴：" name="locX">
+                                    <Form.Item label="位置 X 轴：" name="locX">
                                         <Input value={this.state.locX} placeholder="请输入X轴" />
                                     </Form.Item>
                                 </Col>
                                 <Col span={6}>
-                                    <Form.Item label="Y轴："  name="locY">
+                                    <Form.Item label="位置 Y 轴："  name="locY">
                                         <Input value={this.state.locY} placeholder="请输入Y轴" />
                                     </Form.Item>
                                 </Col>
@@ -143,12 +150,15 @@ export default class extends BaseComponent {
                         </Form>
                     </Header>
 
+                    <Divider />
+
                     <Content className={style.className}>
-                        <div>
-                            <br />
-                            <Table loading={loading} pagination={false} columns={columns} dataSource={dataSource} bordered size="middle" />
-                        </div>
+
+                        <Table loading={loading} pagination={false} columns={columns} dataSource={dataSource} bordered size="middle" />
+
                     </Content>
+
+                    <br/>
 
                     <Footer>
                         <Pagination

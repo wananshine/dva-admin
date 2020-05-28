@@ -21,7 +21,8 @@ export default modelEnhance({
     subscriptions: {
         setup({ dispatch, history }) {
             history.listen(({ pathname }) => {
-                if (pathname === '/LocationInformation' && !LOADED) {
+                const url = '/location_information';
+                if (pathname === url && !LOADED) {
                     LOADED = true;
                     dispatch({
                         type: 'init',
@@ -30,6 +31,8 @@ export default modelEnhance({
                             pageSize: 10,
                         }
                     });
+                }else if(pathname !== url){
+                    LOADED = false;
                 }
             });
         }
@@ -39,7 +42,6 @@ export default modelEnhance({
         // 进入页面加载
         *init({ payload }, { call, put, select }) {
             const response = yield call(ApiLocationInfo, payload);
-            console.log('$$$:', response)
             if(response && response.code === 200){
                 yield put({
                     type: 'dataLocationSuccess',
@@ -110,8 +112,6 @@ export default modelEnhance({
         *update({ payload }, { call, put, select }) {
             try {
                 const response = yield call(ApiLocationUpdate, payload);
-
-                console.log('ApiLocationUpdate',response, payload);
                 const res = yield select(state => state.LocationInformation);
                 console.log('select:',res)
                 yield put({

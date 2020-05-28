@@ -3,6 +3,7 @@ import { ApiDataProduct } from '../service';
 import $$ from 'cmn-utils';
 import modelEnhance from '@/utils/modelEnhance';
 import PageHelper from '@/utils/pageHelper';
+import { ApiProductionLineInfo } from "../../SystemSettings/ProductionLinePosition/service";
 
 let LOADED = false;
 export default modelEnhance({
@@ -16,21 +17,24 @@ export default modelEnhance({
     subscriptions: {
         setup({ dispatch, history }) {
             history.listen(({ pathname }) => {
-                if (pathname === '/ProductionCard' && !LOADED) {
+                const url = '/production_card';
+                if (pathname === url && !LOADED) {
                     LOADED = true;
                     dispatch({
                         type: 'init',
                         payload: {
                             pageNum: 1,
                             pageSize: 10,
-                            startDate: '',
-                            endDate: '',
+                            startDate: new Date((new Date().getTime() - (5 * 24*60*60*1000))).toLocaleDateString().replace(/\//g,"."),
+                            endDate: new Date().toLocaleDateString().replace(/\//g,"."),
                             time: '',
                             partName: '',
                             line: '',
                             lotNo: ''
                         }
                     });
+                }else if(pathname !== url){
+                    LOADED = false;
                 }
             });
         }
@@ -53,6 +57,36 @@ export default modelEnhance({
                         partName: '',
                         line: '',
                         lotNo: ''
+                    },
+                });
+            }
+
+            const result = yield call(ApiProductionLineInfo, {
+                dictType: 'warehouse_line',
+                pageNum: '',
+                pageSize: ''
+            });
+            if(result && result.code === 200){
+                yield put({
+                    type: 'dataLineSuccess',
+                    payload: {
+                        lineOptions: result.rows,
+                        lineTotal: result.total
+                    },
+                });
+            }
+
+            const data = yield call(ApiProductionLineInfo, {
+                dictType: 'warehouse_partName',
+                pageNum: '',
+                pageSize: ''
+            });
+            if(data && data.code === 200){
+                yield put({
+                    type: 'dataPartNameSuccess',
+                    payload: {
+                        pNameOptions: data.rows,
+                        pNameTotal: data.total
                     },
                 });
             }
@@ -137,13 +171,25 @@ export default modelEnhance({
                 pageData: payload.pageData,
                 pageNum: payload.pageNum,
                 pageSize: payload.pageSize,
-                startDate: payload.startDate || '',
-                endDate: payload.endDate || '',
-                time: payload.time || '',
-                partName: payload.partName || '',
-                line: payload.line || '',
-                lotNo: payload.lotNo || ''
+                startDate: payload.startDate,
+                endDate: payload.endDate,
+                time: payload.time,
+                partName: payload.partName,
+                line: payload.line,
+                lotNo: payload.lotNo
             };
         },
+        dataLineSuccess(state, { payload }) {
+            return {
+                ...state,
+                lineData: payload
+            };
+        },
+        dataPartNameSuccess(state, { payload }){
+            return {
+                ...state,
+                pNameData: payload
+            };
+        }
     }
 });

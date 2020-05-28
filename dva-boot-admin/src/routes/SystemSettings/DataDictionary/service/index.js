@@ -1,6 +1,6 @@
 import $$ from 'cmn-utils';
 
-//字典列表
+//字典类型列表
 export async function ApiDataDictTypeList(payload) {
     console.log('payload:',payload);
     return $$.get('/system/dict/data/list?pageNum='+ payload.pageNum +'&pageSize=' + payload.pageSize)
@@ -30,6 +30,8 @@ export async function ApiDataDictTypeDel(payload) {
     return $$.del(`/system/dict/type/${payload.id}`)
 }
 
+/*******************************************************************/
+
 //  获取字典选择框列表
 export async function ApiDataDictOptions(payload) {
     console.log('$$:',$$);
@@ -38,14 +40,14 @@ export async function ApiDataDictOptions(payload) {
 
 //数据字典信息
 export async function ApiDataDictList(payload) {
-    console.log('$$:',$$);
-    return $$.get('/system/dict/data/list?pageNum='+ payload.pageNum +'&pageSize=' + payload.pageSize)
+    console.log('ApiDataDictList:',payload);
+    return $$.get(`/system/dict/data/list?dictType=${payload.dictType}&dictLabel=${payload.dictLabel}&dictValue=${payload.dictValue}&pageNum=${payload.pageNum}&pageSize=${payload.pageSize}`)
 }
 
 //数据字典详细信息
 export async function ApiDataDictDetail(payload) {
     console.log('$$:',$$);
-    return $$.get(`/system/dict/data/${payload.Id}`)
+    return $$.get(`/system/dict/data/${payload.dictCode}`)
 }
 
 //新增数据字典信息

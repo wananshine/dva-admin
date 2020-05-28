@@ -1,8 +1,11 @@
 import { routerRedux } from 'dva';
-import { ApiDataManage } from '../service';
 import $$ from 'cmn-utils';
 import modelEnhance from '@/utils/modelEnhance';
 import PageHelper from '@/utils/pageHelper';
+import { ApiDataManage } from '../service';
+import { ApiProductionLineInfo } from "../../SystemSettings/ProductionLinePosition/service";
+
+
 
 let LOADED = false;
 export default modelEnhance({
@@ -16,21 +19,38 @@ export default modelEnhance({
     subscriptions: {
         setup({ dispatch, history }) {
             history.listen(({ pathname }) => {
-                if (pathname === '/DataSourceManage' && !LOADED) {
+                const url = '/data_source_manage';
+                if (pathname === url && !LOADED) {
+                    LOADED = true;
                     dispatch({
                         type: 'init',
                         payload: {
                             pageNum: 1,
                             pageSize: 10,
-                            startDate: '',
-                            endDate: '',
+                            startDate: new Date((new Date().getTime() - (5 * 24*60*60*1000))).toLocaleDateString().replace(/\//g,"."),
+                            endDate: new Date().toLocaleDateString().replace(/\//g,"."),
                             time: '',
                             partName: '',
                             line: '',
                             lotNo: ''
                         },
                     });
-                    LOADED = true;
+
+                    dispatch({
+                        type: 'downloadInfo',
+                        payload: {
+                            pageNum: '',
+                            pageSize: '',
+                            startDate: new Date((new Date().getTime() - (5 * 24*60*60*1000))).toLocaleDateString().replace(/\//g,"."),
+                            endDate: new Date().toLocaleDateString().replace(/\//g,"."),
+                            time: '',
+                            partName: '',
+                            line: '',
+                            lotNo: ''
+                        },
+                    })
+                }else if(pathname !== url){
+                    LOADED = false;
                 }
             });
         }
@@ -39,6 +59,7 @@ export default modelEnhance({
     effects: {
         // 进入页面加载
         *init({ payload }, { call, put, select }) {
+
             try {
                 const response = yield call(ApiDataManage, payload);
                 if(response && response.code === 200){
@@ -57,11 +78,43 @@ export default modelEnhance({
                         },
                     });
                 }
+
+                //ApiProductionLineInfo
                 console.log('pageData:',response)
             } catch (e) {
                 console.log(e)
             }
 
+
+            const result = yield call(ApiProductionLineInfo, {
+                dictType: 'warehouse_line',
+                pageNum: '',
+                pageSize: ''
+            });
+            if(result && result.code === 200){
+                yield put({
+                    type: 'dataLineSuccess',
+                    payload: {
+                        lineOptions: result.rows,
+                        lineTotal: result.total
+                    },
+                });
+            }
+
+            const data = yield call(ApiProductionLineInfo, {
+                dictType: 'warehouse_partName',
+                pageNum: '',
+                pageSize: ''
+            });
+            if(data && data.code === 200){
+                yield put({
+                    type: 'dataPartNameSuccess',
+                    payload: {
+                        pNameOptions: data.rows,
+                        pNameTotal: data.total
+                    },
+                });
+            }
             // yield put({
             //     type: 'getPageInfo',
             //     payload: {
@@ -100,6 +153,19 @@ export default modelEnhance({
             //         pageInfo: pageData
             //     }
             // });
+        },
+        *downloadInfo({ payload }, { call, put }) {
+            const result = yield call(ApiDataManage, {
+                ...payload,
+                pageNum: '',
+                pageSize: ''
+            });
+            if(result && result.code === 200){
+                yield put({
+                    type: 'dataDownloadSuccess',
+                    payload: result.rows,
+                });
+            }
         },
         // 保存 之后查询分页
         *save({ payload }, { call, put, select, take }) {
@@ -169,5 +235,23 @@ export default modelEnhance({
                 lotNo: payload.lotNo || ''
             };
         },
+        dataLineSuccess(state, { payload }) {
+            return {
+                ...state,
+                lineData: payload
+            };
+        },
+        dataDownloadSuccess(state, { payload }){
+            return {
+                ...state,
+                downData: payload
+            };
+        },
+        dataPartNameSuccess(state, { payload }){
+            return {
+                ...state,
+                pNameData: payload
+            };
+        }
     }
 });

@@ -132,23 +132,23 @@ class TopBar extends Component {
                   {currentRoute[currentRoute.length - 1].title}
                 </CSSAnimate>
               </Breadcrumb.Item>
-              {/*<Breadcrumb.Item className="icon">*/}
-                {/*<Icon type="home" />*/}
-              {/*</Breadcrumb.Item>*/}
-              {/*<Breadcrumb.Item>*/}
-                {/*<Link to="/">主页</Link>*/}
-              {/*</Breadcrumb.Item>*/}
-              {/*{currentRoute.map((item, index) => (*/}
-                {/*<Breadcrumb.Item key={index}>*/}
-                  {/*{index === currentRoute.length - 1 ? (*/}
-                    {/*<CSSAnimate className="inline-block" type="flipInX">*/}
-                      {/*{item.title}*/}
-                    {/*</CSSAnimate>*/}
-                  {/*) : (*/}
-                    {/*<Link to={item.path}>{item.title}</Link>*/}
-                  {/*)}*/}
-                {/*</Breadcrumb.Item>*/}
-              {/*))}*/}
+              <Breadcrumb.Item className="icon">
+                <Icon type="home" />
+              </Breadcrumb.Item>
+              <Breadcrumb.Item>
+                <Link to="/">主页</Link>
+              </Breadcrumb.Item>
+              {currentRoute.map((item, index) => (
+                <Breadcrumb.Item key={index}>
+                  {index === currentRoute.length - 1 ? (
+                    <CSSAnimate className="inline-block" type="flipInX">
+                      {item.title}
+                    </CSSAnimate>
+                  ) : (
+                    <Link to={item.path}>{item.title}</Link>
+                  )}
+                </Breadcrumb.Item>
+              ))}
             </Breadcrumb>
           ) : null}
         </header>

@@ -6,7 +6,8 @@ const proxy = require('http-proxy-middleware');
 module.exports = function(app) {
   app.use(
     proxy('/api', {
-      target: 'http://10.130.201.27/dev-api/',
+      target: 'http://10.130.201.27:8080/',
+      // target: 'http://10.130.201.27/dev-api/',
       changeOrigin: true,
       pathRewrite: {
         '^/api': '/'

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { connect } from 'dva';
-import { Layout, Card, Row, Col, Form, DatePicker, Input, Select, Button, Table, Tag, Space, Pagination, Modal, Icon   } from 'antd';
+import { Layout, Card, Row, Col, Form, DatePicker, Input, Select, Button, Divider, Table, Tag, Space, Pagination, Modal, Icon   } from 'antd';
 import { DeleteOutlined, EditOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import Panel from 'components/Panel';
@@ -13,7 +13,10 @@ const { Header, Content, Footer } = Layout;
 const { RangePicker } = DatePicker;
 const { Option } = Select;
 
-@connect()
+@connect(({ TaskManageData, loading }) => ({
+    TaskManageData,
+    loading: loading.models.TaskManageData
+}))
 
 
 
@@ -25,43 +28,83 @@ export default class extends BaseComponent {
     state = {
         visible: false,
         confirmLoading: false,
+        formData: {}
     };
 
+    getStartDate(){
+        return new Date((new Date().getTime() - (5 * 24*60*60*1000))).toLocaleDateString().replace(/\//g,".");
+    }
+    getEndData(){
+        return new Date().toLocaleDateString().replace(/\//g,".");
+    }
 
 
-  onSearch(){
-      console.log('搜索')
-  }
   onReset(){
       this.formRef.current.resetFields();
       console.log(1)
   }
-  onAdd(){
-      console.log('新增')
-  }
 
+    //删除数据
     onDeleteRecords(record){
+        const { dispatch } = this.props;
         Modal.confirm({
             title: '注意',
             icon: <ExclamationCircleOutlined />,
             content: '是否确认删除此笔数据？',
             onOk: () => {
+                dispatch({
+                    type: 'TaskManageData/remove',
+                    payload: record
+                });
                 console.log(record);
             },
             onCancel() {}
         });
     }
 
-    handleOk(){
+    //新增/编辑Modal Show
+    onEdit = record =>{
+        console.log('编辑Modal:', record);
+        this.setState({
+            ...this.state,
+            visible: true,
+            formData: (record && {
+                taskId:record.taskId,
+                taskType: record.taskType,
+                taskLevel: record.taskLevel,
+                taskCode: record.taskCode,
+                startLoc: record.startLoc,
+                endLoc: record.endLoc
+            }) || {}
+        });
+    };
+
+    handleOk(formData){
+        console.log('formData:',formData);
+        const { taskId } = formData;
+        const { TaskManageData, dispatch } = this.props;
+        if(taskId){
+            dispatch({
+                type: 'TaskManageData/update',
+                payload: formData
+            });
+        }else{
+            dispatch({
+                type: 'TaskManageData/save',
+                payload: formData
+            });
+        }
         this.setState({
             confirmLoading: true,
         });
         setTimeout(() => {
             this.setState({
+                ...this.state,
                 visible: false,
                 confirmLoading: false,
+                formData: {}
             });
-        }, 2000);
+        }, 1000)
     }
 
     handleCancel(){
@@ -70,16 +113,65 @@ export default class extends BaseComponent {
         });
     }
 
-    handleChange(){
-
+    handleChange(val, key){
+        console.log(val, key)
+        this.setState({
+            ...this.state,
+            formData: {
+                ...this.state.formData,
+                [key]: val,
+            }
+        });
+        console.log(val, this.state)
     }
+
+    handleInput(val, key){
+        let value = val.target.value;
+        this.setState({
+            ...this.state,
+            formData: {
+                ...this.state.formData,
+                [key]: value
+            }
+        });
+        console.log(value, this.state)
+    }
+
+
   onChange(pageNumber, pageSize) {
-      console.log('Page: ', pageNumber, pageSize);
+      const { TaskManageData, dispatch } = this.props;
+      dispatch({
+          type: 'TaskManageData/getPageInfo',
+          payload: {
+              ...TaskManageData,
+              pageNum: pageNumber,
+              pageSize: pageSize
+          }
+      });
   }
 
 
+    //查询
     onFinish = values => {
-        console.log(values);
+        console.log(values)
+        const { TaskManageData, dispatch } = this.props;
+        const startData = [undefined].includes(values.datepicker) ? this.getStartDate() : ([null].includes(values.datepicker) ? '' : values.datepicker[0]._d.toLocaleDateString().replace(/\//g,"."));
+        const endData = [undefined].includes(values.datepicker) ? this.getEndData() : ([null].includes(values.datepicker) ? '' : values.datepicker[1]._d.toLocaleDateString().replace(/\//g,"."));
+        const object = {
+            startDate: startData || '',
+            endDate: endData || '',
+            taskType: values.taskType || '',
+            taskLevel: values.taskLevel || '',
+            taskCode: values.taskCode || ''
+        };
+        dispatch({
+            type: 'TaskManageData/getPageInfo',
+            payload: {
+                ...TaskManageData,
+                ...object,
+            }
+        })
+
     };
 
     onFinishFailed(errorInfo) {
@@ -88,21 +180,23 @@ export default class extends BaseComponent {
 
   render() {
       // const [form] = Form.useForm();
-
-      const { visible, confirmLoading } = this.state;
-      const { loading } = this.props;
+      const { formData, visible, confirmLoading } = this.state;
+      const { TaskManageData, loading, dispatch } = this.props;
+      const { pageData, pageNum, pageSize, typeOptions, levelOptions, locOptions, employees } = TaskManageData;
+      const { total, rows } = pageData;
 
       const dateFormat = 'YYYY/MM/DD';
 
       const formItemLayout = {
-          labelCol: { span: 8 },
-          wrapperCol: { span: 16 },
+          labelCol: { span: 4 },
+          wrapperCol: { span: 18 },
       };
 
+      //表头
       const columns = [
           {
               title: '顺番',
-              dataIndex: 'name',
+              dataIndex: 'key',
               align: 'center',
               render: (tags) => (
                   <span style={{textAlign: 'center'}}>{tags}</span>
@@ -110,137 +204,71 @@ export default class extends BaseComponent {
           },
           {
               title: '任务编号',
-              dataIndex: 'age',
+              dataIndex: 'taskCode',
+              // align: 'right',
           },
           {
               title: '任务类型',
-              dataIndex: 'address',
+              dataIndex: 'taskTypeName',
+          },
+          {
+              title: '起始位置',
+              dataIndex: 'startLoc',
+          },
+          {
+              title: '目的位置',
+              dataIndex: 'endLoc',
           },
           {
               title: '优先级',
-              dataIndex: 'address',
-              align: 'right',
+              dataIndex: 'taskLevel',
+              align: 'center',
+              render: (tags) => (
+                  <Tag color="blue">{tags}</Tag>
+              ),
           },
           {
               title: '任务创建时间',
-              dataIndex: 'address',
+              dataIndex: 'createTime',
               align: 'right',
           },
           {
               title: '执行状态',
-              dataIndex: 'address',
+              dataIndex: 'runResult',
               render: (tags) => (
-                  <Tag color="green">{tags}</Tag>
-              ),
+                  <span>
+                      { [null, ''].includes(tags) && <Tag>{tags}</Tag> }
+                      { tags && [0, '0'].includes(tags) && <Tag color="#ffc107">{tags}</Tag> }
+                      { tags && [1, '1'].includes(tags) && <Tag color="#ff1100">{tags}</Tag> }
+                      { tags && [2, '2'].includes(tags) && <Tag color="#00bd08">{tags}</Tag> }
+                  </span>
+
+              )
           },
           {
               title: '',
               key: 'operation',
               render: (text, record) => (
                   <div>
-                      <Button type="link" tooltip="修改" onClick={()=>{ this.onAdd() }} style={{fontSize: '18px'}}>
+                      <Button type="link" tooltip="修改" onClick={()=>{ this.onEdit(record) }} style={{fontSize: '18px'}}>
                           <EditOutlined />
                       </Button>
                       <Button type="link" tooltip="删除" onClick={()=>{ this.onDeleteRecords(record) }} style={{fontSize: '18px'}}>
                           <DeleteOutlined />
                       </Button>
-                      {/*<Link className="topo-data" to={{pathname:'/a',query:{id:text.id}}}>数据拓扑</Link>*/}
                   </div>
               ),
           }
       ];
-      const data = [
-          {
-              key: '1',
-              name: 'John Brown',
-              age: 32,
-              address: 'New York No. 1 Lake Park',
-          },
-          {
-              key: '2',
-              name: 'Jim Green',
-              age: 42,
-              address: 'London No. 1 Lake Park',
-          },
-          {
-              key: '3',
-              name: 'Joe Black',
-              age: 32,
-              address: 'Sidney No. 1 Lake Park',
-          },
-          {
-              key: '4',
-              name: 'Joe Black',
-              age: 32,
-              address: 'Sidney No. 1 Lake Park',
-          },
-          {
-              key: '5',
-              name: 'Joe Black',
-              age: 32,
-              address: 'Sidney No. 1 Lake Park',
-          },
-          {
-              key: '6',
-              name: 'Joe Black',
-              age: 32,
-              address: 'Sidney No. 1 Lake Park',
-          },
-          {
-              key: '6',
-              name: 'Joe Black',
-              age: 32,
-              address: 'Sidney No. 1 Lake Park',
-          },
-          {
-              key: '6',
-              name: 'Joe Black',
-              age: 32,
-              address: 'Sidney No. 1 Lake Park',
-          },
-          {
-              key: '6',
-              name: 'Joe Black',
-              age: 32,
-              address: 'Sidney No. 1 Lake Park',
-          },
-          {
-              key: '6',
-              name: 'Joe Black',
-              age: 32,
-              address: 'Sidney No. 1 Lake Park',
-          },
-          {
-              key: '6',
-              name: 'Joe Black',
-              age: 32,
-              address: 'Sidney No. 1 Lake Park',
-          },
-          {
-              key: '6',
-              name: 'Joe Black',
-              age: 32,
-              address: 'Sidney No. 1 Lake Park',
-          },
-          {
-              key: '6',
-              name: 'Joe Black',
-              age: 32,
-              address: 'Sidney No. 1 Lake Park',
-          },
-          {
-              key: '6',
-              name: 'Joe Black',
-              age: 32,
-              address: 'Sidney No. 1 Lake Park',
-          },
-          {
-              key: '6',
-              name: 'Joe Black',
-              age: 32,
-              address: 'Sidney No. 1 Lake Park',
-          }
-      ];
+
+      //表数据
+      const dataSource = rows && rows.map((v, i)=>{
+          v.key =  Number(i + 1) + (Number(pageNum) * Number(pageSize)) - Number(pageSize);
+          return v;
+      });
+
+      console.log('task_manage:', TaskManageData)
+
 
     return (
       <Layout className="">
@@ -249,9 +277,9 @@ export default class extends BaseComponent {
                   <Form ref={this.formRef} onFinish={this.onFinish} onFinishFailed={()=>{this.onFinishFailed()}}>
                       <Row gutter={16}>
                           <Col span={6}>
-                              <Form.Item label="日期：" name="range-picker">
+                              <Form.Item label="起止日期：" name="datepicker">
                                   <RangePicker
-                                      defaultValue={[moment(new Date(), dateFormat), moment(new Date(), dateFormat)]}
+                                      defaultValue={[moment(new Date((new Date().getTime() - (5 * 24*60*60*1000))).toLocaleDateString()), moment(new Date().toLocaleDateString()), dateFormat]}
                                       className={style.antPickerRange} />
                               </Form.Item>
                           </Col>
@@ -260,103 +288,104 @@ export default class extends BaseComponent {
 
                       <Row gutter={16}>
                           <Col span={6}>
-                              <Form.Item label="任务编号：" name="taskNo">
-                                  <Input placeholder="请输入任务编号" />
+                              <Form.Item label="任务编号：" name="taskCode">
+                                  <Input placeholder="请输入任务编号" autoComplete='off' />
                               </Form.Item>
                           </Col>
                           <Col span={6}>
                               <Form.Item label="任务类型：" name="taskType">
                                   <Select defaultValue="" onChange={()=>{this.handleChange()}} placeholder="请选择任务类型">
-                                      <Option value="jack">Jack</Option>
-                                      <Option value="lucy">Lucy</Option>
-                                      <Option value="Yiminghe">yiminghe</Option>
+                                      {
+                                          typeOptions && typeOptions.map((v, i)=>{
+                                              return <Option key={v.dictValue} value={v.dictValue}>{v.dictLabel}</Option>
+                                          })
+                                      }
                                   </Select>
                               </Form.Item>
                           </Col>
                           <Col span={6}>
                               <Form.Item label="优先级：" name="taskLevel">
-                                  <Input placeholder="请输入优先级" />
+                                  <Select defaultValue="" onChange={()=>{this.handleChange()}} placeholder="请选择优先级">
+                                      {
+                                          levelOptions && levelOptions.map((v, i)=>{
+                                              return <Option key={v.dictValue} value={v.dictValue}>{v.dictLabel}</Option>
+                                          })
+                                      }
+                                  </Select>
                               </Form.Item>
                           </Col>
                       </Row>
 
                       <Row gutter={16}>
-                          <Button type="primary" className={style.btnAction} onClick={()=>{this.onSearch()}} htmlType="submit">查询</Button>
+                          <Button type="primary" className={style.btnAction}  htmlType="submit">查询</Button>
                           <Button type="danger" className={style.btnAction} onClick={()=>{this.onReset()}}>重置</Button>
-                          <Button type="default" className={style.btnAction} onClick={()=>{this.onAdd()}}>新增</Button>
+                          <Button type="default" className={style.btnAction} onClick={()=>{this.onEdit()}}>新增</Button>
                       </Row>
 
                   </Form>
               </Header>
 
+              <Divider />
+
               <Content className={style.className}>
 
                   <div>
-                      <h4></h4>
-                      <Table loading={loading} pagination={false} columns={columns} dataSource={data} bordered size="middle" />
+                      <Table loading={loading} pagination={false} columns={columns} dataSource={dataSource} bordered size="middle" />
                   </div>
 
                   {/*新增/修改页面弹框*/}
                   <Modal
+                      destroyOnClose
+                      title={formData.taskId ? '修改' : '新增'}
                       width="680px"
-                      title="新增/修改页面"
                       okText="保存"
                       visible={visible}
                       confirmLoading={confirmLoading}
-                      onOk={()=>{this.handleOk()}}
+                      onOk={()=>{this.handleOk(formData)}}
                       onCancel={()=>{this.handleCancel()}}
                   >
                       <div>
+
                           <Form>
-
-                              <Row gutter={16}>
-                                  <Col span={8}>
-                                      <Form.Item label="任务编号："  {...formItemLayout}>
-                                          <Input placeholder="请输入任务编号" />
-                                      </Form.Item>
-                                  </Col>
-                                  <Col span={8}>
-                                      <Form.Item label="任务类型：" {...formItemLayout}>
-                                          <Select defaultValue="lucy" onChange={()=>{this.handleChange()}}>
-                                              <Option value="jack">Jack</Option>
-                                              <Option value="lucy">Lucy</Option>
-                                              <Option value="Yiminghe">yiminghe</Option>
-                                          </Select>
-                                      </Form.Item>
-                                  </Col>
-                                  <Col span={8}>
-                                      <Form.Item label="优先级：" {...formItemLayout}>
-                                          <Input placeholder="请输入优先级" />
-                                      </Form.Item>
-                                  </Col>
-                              </Row>
-
-                              <Row gutter={16}>
-                                  <Col span={8}>
-                                      <Form.Item label="位置1：" {...formItemLayout}>
-                                          <Input placeholder="" />
-                                      </Form.Item>
-                                  </Col>
-                                  <Col span={8}>
-                                      <Form.Item label="位置2：" {...formItemLayout}>
-                                          <Input placeholder="" />
-                                      </Form.Item>
-                                  </Col>
-                                  <Col span={8}>
-                                      <Form.Item label="位置3：" {...formItemLayout}>
-                                          <Input placeholder="" />
-                                      </Form.Item>
-                                  </Col>
-                              </Row>
-
-                              <Row gutter={16}>
-                                  <Col span={8}>
-                                      <Form.Item label="位置4：" {...formItemLayout}>
-                                          <Input placeholder="" />
-                                      </Form.Item>
-                                  </Col>
-                              </Row>
-
+                              <Form.Item label="任务编号："  {...formItemLayout}>
+                                  <Input defaultValue={formData.taskCode} onChange={(val)=>{this.handleInput(val, 'taskCode')}} disabled placeholder="请输入任务编号" />
+                              </Form.Item>
+                              <Form.Item label="任务类型：" {...formItemLayout}>
+                                  <Select defaultValue={formData.taskType} onChange={(val)=>{this.handleChange(val, 'taskType')}} placeholder="请选择任务类型">
+                                      {
+                                          typeOptions && typeOptions.map((v, i)=>{
+                                              return <Option key={v.dictValue} value={v.dictValue}>{v.dictLabel}</Option>
+                                          })
+                                      }
+                                  </Select>
+                              </Form.Item>
+                              <Form.Item label="优先级：" {...formItemLayout}>
+                                  <Select defaultValue={formData.taskLevel} onChange={(val)=>{this.handleChange(val, 'taskLevel')}} placeholder="请选择优先级">
+                                      {
+                                          levelOptions && levelOptions.map((v, i)=>{
+                                              return <Option key={v.dictValue} value={v.dictValue}>{v.dictLabel}</Option>
+                                          })
+                                      }
+                                  </Select>
+                              </Form.Item>
+                              <Form.Item label="起始位置：" {...formItemLayout}>
+                                  <Select defaultValue={formData.startLoc} onChange={(val)=>{this.handleChange(val, 'startLoc')}} placeholder="请输入起始位置">
+                                      {
+                                          locOptions && locOptions.map((v, i)=>{
+                                              return <Option key={v.locationId} value={v.locationId}>{v.locationName}</Option>
+                                          })
+                                      }
+                                  </Select>
+                              </Form.Item>
+                              <Form.Item label="目的位置：" {...formItemLayout}>
+                                  <Select defaultValue={formData.endLoc} onChange={(val)=>{this.handleChange(val, 'endLoc')}} placeholder="请输入目的位置">
+                                      {
+                                          locOptions && locOptions.map((v, i)=>{
+                                              return <Option key={v.locationId} value={v.locationId}>{v.locationName}</Option>
+                                          })
+                                      }
+                                  </Select>
+                              </Form.Item>
                           </Form>
                       </div>
 
@@ -364,13 +393,16 @@ export default class extends BaseComponent {
 
               </Content>
 
+              <br/>
+
               <Footer>
                   <Pagination
                       hideOnSinglePage
                       showQuickJumper
                       showSizeChanger
-                      defaultCurrent={1}
-                      total={1000}
+                      current={pageNum}
+                      defaultCurrent={pageNum}
+                      total={total}
                       onShowSizeChange={(pageNumber, pageSize)=>{this.onChange(pageNumber, pageSize)}}
                       onChange={(pageNumber, pageSize)=>{this.onChange(pageNumber, pageSize)}}
                   />
@@ -382,55 +414,4 @@ export default class extends BaseComponent {
   }
 }
 
-const Demo = ()=>{
-    const onFinish = values => {
-        console.log('Success:', values);
-    };
 
-    const onFinishFailed = errorInfo => {
-        console.log('Failed:', errorInfo);
-    };
-
-    return (
-        <Form
-            name="basic"
-            initialValues={{
-                remember: true,
-            }}
-            onFinish={onFinish}
-            onFinishFailed={onFinishFailed}
-        >
-            <Form.Item
-                label="Username"
-                name="username"
-                rules={[
-                    {
-                        required: true,
-                        message: 'Please input your username!',
-                    },
-                ]}
-            >
-                <Input />
-            </Form.Item>
-
-            <Form.Item
-                label="Password"
-                name="password"
-                rules={[
-                    {
-                        required: true,
-                        message: 'Please input your password!',
-                    },
-                ]}
-            >
-                <Input.Password />
-            </Form.Item>
-
-            <Form.Item >
-                <Button type="primary" htmlType="submit">
-                    Submit
-                </Button>
-            </Form.Item>
-        </Form>
-    );
-}

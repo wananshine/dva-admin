@@ -1,7 +1,7 @@
 import { dynamicWrapper, createRoute } from '@/utils/core';
 
 const routesConfig = app => ({
-  path: '/RulesManage',
+  path: '/rules_manage',
   title: '权限管理',
   component: dynamicWrapper(app, [import('./model')], () => import('./components'))
 });

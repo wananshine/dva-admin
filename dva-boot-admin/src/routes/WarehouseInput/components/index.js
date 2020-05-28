@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'dva';
-import { Layout, Card, Row, Col, Form, DatePicker, Input, Button, Select, Table, Tag, Space, Pagination, Modal, Icon   } from 'antd';
+import { Layout, Card, Row, Col, Form, DatePicker, Input, Button, Select, Divider, Table, Tag, Space, Pagination, Modal, Icon   } from 'antd';
 import { DeleteOutlined, EditOutlined, ExclamationCircleOutlined  } from '@ant-design/icons';
 import moment from 'moment';
 import BaseComponent from 'components/BaseComponent';
@@ -20,57 +20,79 @@ const { Option } = Select;
 
 export default class extends BaseComponent {
 
-  formRef = React.createRef();
+    formRef = React.createRef();
 
-    getStartDate(){
-        return new Date((new Date().getTime() - (5 * 24*60*60*1000))).toLocaleDateString().replace(/\//g,".");
-    }
-    getEndData(){
-        return new Date().toLocaleDateString().replace(/\//g,".");
-    }
-
-  state = {
+    state = {
     visible: false,
     confirmLoading: false,
     formData: {}
   };
 
-  onSearch(){
-      console.log('搜索')
-  }
-    onReset(){
-        this.formRef.current.resetFields();
-        console.log(1)
+    getStartDate(){
+        return new Date().toLocaleDateString().replace(/\//g,".");
     }
 
-  //新增/编辑Modal Show
-    onEdit = record =>{
-        this.setState({
-            ...this.state,
-            visible: true,
-            formData: record || {}
-        });
-    };
+    getEndData(){
+        return new Date().toLocaleDateString().replace(/\//g,".");
+    }
 
-  onDeleteRecords(record){
+    //重置
+    onReset(){
+      this.formRef.current.resetFields();
+      console.log(1)
+  }
+
+    //删除一条数据
+    onDeleteRecords(record, _this){
+      const { warehouse, dispatch } = _this.props;
       Modal.confirm({
           title: '注意',
           icon: <ExclamationCircleOutlined />,
           content: '是否确认删除此笔数据？',
           onOk: () => {
+              dispatch({
+                  type: 'warehouse/remove',
+                  payload: record
+              });
               console.log(record);
           },
           onCancel() {}
       });
   }
 
-    handleOk(formData){
-        const { warehouse, dispatch } = this.props;
-        dispatch({
-            type: 'warehouse/save',
-            payload: this.state.formData
-        });
+    //新增/编辑Modal Show
+    onEdit = record =>{
+      console.log('record:', record);
         this.setState({
+            ...this.state,
+            visible: true,
+            formData: (record && {
+                "warehouseInputId":record.warehouseInputId,
+                "partName": record.partName,
+                "line": Number(record.line),
+                "lotNo": record.lotNo,
+                "locStart": record.locStart
+            }) || {}
+        });
+    };
+
+    //新增/编辑 确认
+    handleOk(formData){
+        const { warehouseInputId } = formData;
+        const { warehouse, dispatch } = this.props;
+        if(warehouseInputId){
+            dispatch({
+                type: 'warehouse/update',
+                payload: formData
+            });
+        }else{
+            dispatch({
+                type: 'warehouse/save',
+                payload: formData
+            });
+        }
+        this.setState({
+            ...this.state,
             confirmLoading: true,
         });
         setTimeout(() => {
@@ -80,7 +102,7 @@ export default class extends BaseComponent {
                 confirmLoading: false,
                 formData: {}
             });
-        }, 2000)
+        }, 1000)
     }
 
     handleCancel(){
@@ -91,18 +113,37 @@ export default class extends BaseComponent {
         });
     }
 
-    handleChange(val, key){
-        console.log(val, key)
-        this.setState({
-            ...this.state,
-            formData: {
-                ...this.state.formData,
-                [key]: val,
-            }
-        });
-        console.log(val, this.state)
+    //select Line联动
+    handleLineChange (val, key, option){
+      console.log('handleLineChange:',val, key, option)
+      const { dispatch } = this.props;
+      this.setState({
+          ...this.state,
+          formData: {
+              ...this.state.formData,
+              [key]: val,
+              locStart: ''
+          }
+      });
+      dispatch({
+          type: 'warehouse/getLines',
+          payload: { lineId: option.dataCode }
+      });
     }
 
+    // select 选择
+    handleChange(val, key){
+
+      this.setState({
+          ...this.state,
+          formData: {
+              ...this.state.formData,
+              [key]: val
+          }
+      })
+    }
+
+    //  input输入
     handleInput(val, key){
         let value = val.target.value;
         this.setState({
@@ -115,8 +156,8 @@ export default class extends BaseComponent {
         console.log(value, this.state)
     }
 
-
-  onChange(pageNumber, pageSize) {
+    //  分页
+    onChange(pageNumber, pageSize) {
       const { warehouse, dispatch } = this.props;
       dispatch({
           type: 'warehouse/getPageInfo',
@@ -127,213 +168,203 @@ export default class extends BaseComponent {
           }
       });
       console.log('Page: ', pageNumber, pageSize);
-  }
+    }
 
     //查询
     onFinish = values => {
-        const { warehouse, dispatch } = this.props;
-        if(![undefined].includes(values.datepicker)){
-            console.log('have',values);
-            const obj = {
-                startDate: [null].includes(values.datepicker) ? '' : values.datepicker[0]._d.toLocaleDateString().replace(/\//g,"."),
-                endDate: [null].includes(values.datepicker) ? '' : values.datepicker[1]._d.toLocaleDateString().replace(/\//g,"."),
-                partName: values.partName || '',
-                line: values.line || '',
-            };
-            dispatch({
-                type: 'warehouse/getPageInfo',
-                payload: {
-                    ...warehouse,
-                    ...obj,
-                }
-            });
-            return;
-        }
+      const { warehouse, dispatch } = this.props;
+      const startData = [undefined].includes(values.datepicker) ? this.getStartDate() : ([null].includes(values.datepicker) ? '' : values.datepicker[0]._d.toLocaleDateString().replace(/\//g,"."));
+      const endData = [undefined].includes(values.datepicker) ? this.getEndData() : ([null].includes(values.datepicker) ? '' : values.datepicker[1]._d.toLocaleDateString().replace(/\//g,"."));
 
-        const obj = {
-            startDate: this.getStartDate() || '',
-            endDate: this.getEndData() || '',
-            partName: values.partName || '',
-            line: values.line || '',
-        };
-        dispatch({
-            type: 'warehouse/getPageInfo',
-            payload: {
-                ...warehouse,
-                ...obj,
-            }
-        });
-        console.log('nohave',this.getStartDate(), this.getEndData())
+      const object = {
+          ...warehouse,
+          startDate: startData || '',
+          endDate: endData || '',
+          partName: values.partName || '',
+          line: values.lineId || '',
+          locStart: values.locStart || '',
+      };
+
+      dispatch({
+          type: 'warehouse/getPageInfo',
+          payload: {
+              ...warehouse,
+              ...object,
+          }
+      });
+
     };
 
     onFinishFailed(errorInfo) {
         console.log('Failed:', errorInfo);
     }
 
-  render() {
+    render() {
 
-      const { formData, visible, confirmLoading } = this.state;
-      const { warehouse , loading, dispatch } = this.props;
-      const { pageData, pageNum, pageSize, employees } = warehouse;
-      const { total, rows } = pageData;
+        const { formData, visible, confirmLoading } = this.state;
+        const { warehouse , loading, dispatch } = this.props;
+        const { pageData, pageNum, pageSize, pNameData, lineData, locOptions, employees } = warehouse;
+        const { total, rows } = pageData;
+        const lineOptions = (lineData && lineData.lineOptions) || [];
+        const pNameOptions = (pNameData && pNameData.pNameOptions) || [];
 
 
 
-      const dateFormat = 'YYYY/MM/DD';
+        const dateFormat = 'YYYY/MM/DD';
 
-      //表头
-      const columns = createColumns(this, employees);
+        const formItemLayout = {
+          labelCol: { span: 4 },
+          wrapperCol: { span: 18 },
+        };
 
-      //表数据
-      const dataSource = rows && rows.map((v, i)=>{
-          v.key =  Number(i + 1) + (Number(pageNum) * Number(pageSize)) - 10;
+        //表头
+        const columns = createColumns(this, employees);
+
+        //表数据
+        const dataSource = rows && rows.map((v, i)=>{
+          v.key =  Number(i + 1) + (Number(pageNum) * Number(pageSize)) - Number(pageSize);
           return v;
-      });
+        });
 
-      const partNames = [
-          { txt: 'XSW', val: 'XSW' },
-          { txt: 'XAW', val: 'XAW' },
-      ];
+        const lotNos = [
+          { txt: 'A00A', val: 'A00A' },
+          { txt: 'A00A', val: 'A00A' },
+        ];
 
-      const Lines = [
-          { txt: '30', val: '30' },
-          { txt: '50', val: '50' },
-      ];
+        return (
+          <Layout className="">
+              <Card title="">
+                  <Header>
+                      <Form ref={this.formRef} onFinish={this.onFinish} onFinishFailed={()=>{this.onFinishFailed()}}>
+                          <Row gutter={16}>
+                              <Col span={6}>
+                                  <Form.Item label="日期：" name="datepicker">
+                                      <RangePicker
+                                          defaultValue={[moment(new Date().toLocaleDateString()), moment(new Date().toLocaleDateString()), dateFormat]}
+                                          className={style.antPickerRange} />
+                                  </Form.Item>
+                              </Col>
+                          </Row>
 
-      const lotNos = [
-          { txt: 'XSW', val: 'XSW' },
-          { txt: 'XAW', val: 'XAW' },
-      ];
+                          <Row gutter={16}>
+                              <Col span={6}>
+                                  <Form.Item label="品名：" name="partName">
+                                      {/*defaultValue=""*/}
+                                      <Select placeholder="请选择品名">
+                                          {
+                                              pNameOptions && pNameOptions.map((v, i)=>{
+                                                  return <Option key={i.toString() + `${v.dictCode}`} value={v.dictValue}>{v.dictLabel}</Option>
+                                              })
+                                          }
+                                      </Select>
+                                  </Form.Item>
+                              </Col>
+                              <Col span={6}>
+                                  <Form.Item label="Line：" name="lineId">
+                                      {/*defaultValue=""*/}
+                                      <Select placeholder="请选择Line">
+                                          {
+                                              lineOptions && lineOptions.map((v, i)=>{
+                                                  return <Option key={i.toString() + `${v.dictCode}`} value={v.dictValue}>产线：{v.dictLabel}</Option>
+                                              })
+                                          }
+                                      </Select>
+                                  </Form.Item>
+                              </Col>
+                          </Row>
 
-    return (
-      <Layout className="">
-          <Card title="">
-              <Header>
-                  <Form ref={this.formRef} onFinish={this.onFinish} onFinishFailed={()=>{this.onFinishFailed()}}>
-                      <Row gutter={16}>
-                          <Col span={6}>
-                              <Form.Item label="日期：" name="datepicker">
-                                  <RangePicker
-                                      defaultValue={[moment(new Date((new Date().getTime() - (5 * 24*60*60*1000))).toLocaleDateString()), moment(new Date().toLocaleDateString()), dateFormat]}
-                                      className={style.antPickerRange} />
-                              </Form.Item>
-                          </Col>
-                      </Row>
+                          <Row gutter={16}>
+                              <Button type="primary" className={style.btnAction} htmlType="submit">查询</Button>
+                              <Button type="danger" className={style.btnAction} onClick={()=>{this.onReset()}}>重置</Button>
+                              <Button type="default" className={style.btnAction} onClick={()=>{this.onEdit()}}>新增</Button>
+                          </Row>
 
-                      <Row gutter={16}>
-                          <Col span={6}>
-                              <Form.Item label="品名：" name="partName">
-                                  {/*defaultValue=""*/}
-                                  <Select placeholder="请输入品名">
-                                      {
-                                          partNames.map((v, i)=>{
-                                              return <Option key={v.val} value={v.val}>{v.txt}</Option>
-                                          })
-                                      }
-                                  </Select>
-                              </Form.Item>
-                          </Col>
-                          <Col span={6}>
-                              <Form.Item label="Line：" name="line">
-                                  {/*defaultValue=""*/}
-                                  <Select placeholder="请输入Line">
-                                      {
-                                          Lines.map((v, i)=>{
-                                              return <Option key={v.val} value={v.val}>{v.txt}</Option>
-                                          })
-                                      }
-                                  </Select>
-                              </Form.Item>
-                          </Col>
-                      </Row>
+                      </Form>
+                  </Header>
 
-                      <Row gutter={16}>
-                          <Button type="primary" className={style.btnAction} onClick={()=>{this.onSearch()}} htmlType="submit">查询</Button>
-                          <Button type="danger" className={style.btnAction} onClick={()=>{this.onReset()}}>重置</Button>
-                          <Button type="default" className={style.btnAction} onClick={()=>{this.onEdit()}}>新增</Button>
-                      </Row>
+                  <Divider />
 
-                  </Form>
-              </Header>
+                  <Content className={style.className}>
 
-              <Content className={style.className}>
-                  <div>
-                      <h4></h4>
                       <Table loading={loading} pagination={false} columns={columns} dataSource={dataSource} bordered size="middle" />
-                  </div>
 
-                  <Modal
-                      title="新增/修改页面"
-                      destroyOnClose
-                      okText="保存"
-                      visible={visible}
-                      confirmLoading={confirmLoading}
-                      onOk={()=>{this.handleOk(formData)}}
-                      onCancel={()=>{this.handleCancel()}}
-                  >
-                      <div>
-                          <Form ref='ModalForm'>
-                              <Row gutter={16}>
-                                  <Col span={12}>
-                                      <Form.Item label="品名：" >
-                                          <Select defaultValue={formData.partName}  onChange={(val)=>{this.handleChange(val, 'partName')}} placeholder="请输入品名" >
-                                              {
-                                                  partNames.map((v, i)=>{
-                                                      return <Option key={v.val} value={v.val}>{v.txt}</Option>
-                                                  })
-                                              }
-                                          </Select>
-                                      </Form.Item>
-                                  </Col>
-                                  <Col span={12}>
-                                      <Form.Item label="Line：" >
-                                          <Select defaultValue={formData.line}  onChange={(val)=>{this.handleChange(val, 'line')}} placeholder="请输入Line">
-                                              {
-                                                  Lines.map((v, i)=>{
-                                                      return <Option key={v.val} value={v.val}>{v.txt}</Option>
-                                                  })
-                                              }
-                                          </Select>
-                                      </Form.Item>
-                                  </Col>
-                              </Row>
+                      <Modal
+                          title={formData.warehouseInputId ? '修改' : '新增'}
+                          destroyOnClose
+                          okText="保存"
+                          visible={visible}
+                          confirmLoading={confirmLoading}
+                          onOk={()=>{this.handleOk(formData)}}
+                          onCancel={()=>{this.handleCancel()}}
+                      >
+                          <div>
+                              <Form ref='ModalForm'>
 
-                              <Row gutter={16}>
-                                  <Col span={12}>
-                                      <Form.Item label="LotNo：" >
-                                          <Select defaultValue={formData.lotNo} placeholder="请输入LotNo" onChange={(val)=>{this.handleChange(val, 'LotNo')}}>
-                                              {
-                                                  lotNos.map((v, i)=>{
-                                                      return <Option key={v.val} value={v.val}>{v.txt}</Option>
-                                                  })
-                                              }
-                                          </Select>
-                                      </Form.Item>
-                                  </Col>
-                              </Row>
+                                  <Form.Item label="品名："  {...formItemLayout}>
+                                      <Select defaultValue={formData.partName}  onChange={(val)=>{this.handleChange(val, 'partName')}} placeholder="请输入品名" >
+                                          {
+                                              pNameOptions && pNameOptions.map((v, i)=>{
+                                                  return <Option key={i.toString() + `${v.dictCode}`} value={v.dictValue}>{v.dictLabel}</Option>
+                                              })
+                                          }
+                                      </Select>
+                                  </Form.Item>
 
-                          </Form>
-                      </div>
-                  </Modal>
+                                  <Form.Item label="Line：" {...formItemLayout}>
+                                      <Select defaultValue={formData.line}  onChange={(val, option)=>{this.handleLineChange(val, 'line', option)}} placeholder="请选择Line">
+                                          {
+                                              lineOptions && lineOptions.map((v, i)=>{
+                                                  return <Option key={i.toString() + `${v.dictCode}`} dataCode={v.dictCode} value={v.dictValue}>产线：{v.dictLabel}</Option>
+                                              })
+                                          }
+                                      </Select>
+                                  </Form.Item>
 
-              </Content>
+                                  <Form.Item label="LotNo：" {...formItemLayout}>
+                                      <Input defaultValue={formData.lotNo} placeholder="请输入LotNo" onChange={(val)=>{this.handleInput(val, 'lotNo')}} autoComplete="off" />
+                                      {/*<Select defaultValue={formData.lotNo} placeholder="请输入LotNo" onChange={(val)=>{this.handleChange(val, 'lotNo')}}>*/}
+                                          {/*{*/}
+                                              {/*lotNos.map((v, i)=>{*/}
+                                                  {/*return <Option key={v.val} value={v.val}>{v.txt}</Option>*/}
+                                              {/*})*/}
+                                          {/*}*/}
+                                      {/*</Select>*/}
+                                  </Form.Item>
 
-              <Footer>
-                  <Pagination
-                      hideOnSinglePage
-                      showQuickJumper
-                      showSizeChanger
-                      current={pageNum}
-                      defaultCurrent={pageNum}
-                      total={total}
-                      onShowSizeChange={(pageNumber, pageSize)=>{this.onChange(pageNumber, pageSize)}}
-                      onChange={(pageNumber, pageSize)=>{this.onChange(pageNumber, pageSize)}}
-                  />
-              </Footer>
+                                  <Form.Item label="起始位置：" {...formItemLayout}>
+                                      <Select value={formData.locStart} placeholder="请选择起始位置" onChange={(val)=>{this.handleChange(val, 'locStart')}}>
+                                          {
+                                              locOptions && locOptions.map((v, i)=>{
+                                                  return <Option key={v.locationId} value={v.locationId}>{v.locationName}</Option>
+                                              })
+                                          }
+                                      </Select>
+                                  </Form.Item>
 
-          </Card>
-      </Layout>
-    );
+                              </Form>
+                          </div>
+                      </Modal>
+
+                  </Content>
+
+                  <br/>
+
+                  <Footer>
+                      <Pagination
+                          hideOnSinglePage
+                          showQuickJumper
+                          showSizeChanger
+                          current={pageNum}
+                          defaultCurrent={pageNum}
+                          total={total}
+                          onShowSizeChange={(pageNumber, pageSize)=>{this.onChange(pageNumber, pageSize)}}
+                          onChange={(pageNumber, pageSize)=>{this.onChange(pageNumber, pageSize)}}
+                      />
+                  </Footer>
+
+              </Card>
+          </Layout>
+        );
   }
 }
 

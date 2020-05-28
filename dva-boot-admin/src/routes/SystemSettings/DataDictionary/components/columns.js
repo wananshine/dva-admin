@@ -1,5 +1,5 @@
 import React from 'react';
-import { FormOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { FormOutlined, EditOutlined, DeleteOutlined, LinkOutlined } from '@ant-design/icons';
 import { router } from 'dva';
 const { Link } = router;
 
@@ -67,9 +67,14 @@ export default (self, employees) => {
           render: (text, record) => (
               <div>
                   <div>
-                      <EditOutlined onClick={()=>{ onEditModal(text, record) }} style={{fontSize: '18px', color: '#1890ff', margin: '0px 26px'}} />
+                      <EditOutlined onClick={()=>{ onEditModal(text, record) }} style={{fontSize: '18px', color: '#1890ff', marginRight: '24px'}} />
 
-                      <DeleteOutlined onClick={()=>{ onShowModal(record) }} style={{fontSize: '18px', color: '#1890ff'}} />
+                      <DeleteOutlined onClick={()=>{ onShowModal(record) }} style={{fontSize: '18px', color: '#1890ff', marginRight: '24px'}} />
+
+                      <Link to={`/data_dictionary/detail?id=${record.dictCode}`}>
+                          <LinkOutlined style={{fontSize: '18px', color: '#1890ff'}} />
+                      </Link>
+
                   </div>
                   {/*<Button tooltip="修改" onClick={e => self.onUpdate(record)}>*/}
                   {/*<Icon type="edit" />*/}
@@ -78,9 +83,9 @@ export default (self, employees) => {
                   {/*<Icon type="trash" />*/}
                   {/*</Button>*/}
                   {/*<Button tooltip="跳转到新路由">*/}
-                  {/*<Link to={"/crud/detail?id=" + record.id}>*/}
-                  {/*<Icon type="LinkOutlined" antd />*/}
-                  {/*</Link>*/}
+                      {/*<Link to={"/crud/detail?id=" + record.id}>*/}
+                        {/*<Icon type="LinkOutlined" antd />*/}
+                      {/*</Link>*/}
                   {/*</Button>*/}
               </div>
           )

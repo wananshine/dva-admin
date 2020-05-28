@@ -54,6 +54,9 @@ class PrimaryLayout extends PureComponent {
     const { isMobile } = this.state
     const { onCollapseChange } = this
 
+
+    console.log('routeList:', store, routeList)
+
     // Localized route name.
 
     const lang = getLocale()

@@ -41,9 +41,17 @@ class SiderMenu extends PureComponent {
     return data.map(item => {
       if (item.children) {
         return (
-          <div>
-            123
-          </div>
+          <SubMenu
+            key={item.id}
+            title={
+              <Fragment>
+                {item.icon && <LegacyIcon type={item.icon} />}
+                <span>{item.name}</span>
+              </Fragment>
+            }
+          >
+            {this.generateMenus(item.children)}
+          </SubMenu>
         )
       }
       return (
