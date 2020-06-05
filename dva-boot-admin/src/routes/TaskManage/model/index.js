@@ -2,7 +2,7 @@ import modelEnhance from '@/utils/modelEnhance';
 import { routerRedux } from 'dva';
 import $$ from 'cmn-utils';
 import { ApiTaskList, ApitaskSave, ApitaskUpdate, ApiTaskDel, ApiTaskOption } from '../service';
-import { ApiLocInfo } from "../../SystemSettings/ProductionLinePosition/service";
+import { ApiLocationInfo } from "../../SystemSettings/LocInformation/service";
 
 
 
@@ -96,7 +96,7 @@ export default modelEnhance({
                 });
             }
 
-            const locResult = yield call(ApiLocInfo, {
+            const locResult = yield call(ApiLocationInfo, {
                 pageNum: '',
                 pageSize: ''
             });

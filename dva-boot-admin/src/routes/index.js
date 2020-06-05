@@ -18,8 +18,9 @@ import TaskManage from './TaskManage'
 
 //系统设置
 import RulesManage from './SystemSettings/RulesManage';
-import LocationInformation from './SystemSettings/LocationInformation';
-import ProductionLinePosition from './SystemSettings/ProductionLinePosition';
+import LineInformation from './SystemSettings/LineInformation';
+import LocInformation from './SystemSettings/LocInformation';
+import ProLinePosition from './SystemSettings/ProLinePosition';
 import DataDictionary from './SystemSettings/DataDictionary';
 import DataDictionaryDetail from './SystemSettings/DataDictionary/routers/Detail';
 
@@ -49,21 +50,22 @@ const routesConfig = app => [
         component: BasicLayout,
         indexRoute: '/data_source_manage',
         childRoutes: [
-          ProductionCard(app),
-          DataManage(app),
-          WarehouseInput(app),
-          DataCheck(app),
-          TaskManage(app),
-          RulesManage(app),
-          LocationInformation(app),
-            ProductionLinePosition(app),
-          DataDictionary(app),
-          DataDictionaryDetail(app),
+            ProductionCard(app),
+            DataManage(app),
+            WarehouseInput(app),
+            DataCheck(app),
+            TaskManage(app),
+            RulesManage(app),
+            LineInformation(app),
+            LocInformation(app),
+            ProLinePosition(app),
+            DataDictionary(app),
+            DataDictionaryDetail(app),
 
-          // Blank(app),
-          Page403(),
-          Page500(),
-          NotFound()
+            // Blank(app),
+            Page403(),
+            Page500(),
+            NotFound()
         ]
     }
 ];

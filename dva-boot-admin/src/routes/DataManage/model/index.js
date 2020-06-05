@@ -3,7 +3,7 @@ import $$ from 'cmn-utils';
 import modelEnhance from '@/utils/modelEnhance';
 import PageHelper from '@/utils/pageHelper';
 import { ApiDataManage } from '../service';
-import { ApiProductionLineInfo } from "../../SystemSettings/ProductionLinePosition/service";
+import { ApiLineInfo } from "../../SystemSettings/LineInformation/service";
 
 
 
@@ -36,6 +36,7 @@ export default modelEnhance({
                         },
                     });
 
+                    //导出的数据
                     dispatch({
                         type: 'downloadInfo',
                         payload: {
@@ -48,7 +49,8 @@ export default modelEnhance({
                             line: '',
                             lotNo: ''
                         },
-                    })
+                    });
+
                 }else if(pathname !== url){
                     LOADED = false;
                 }
@@ -66,27 +68,19 @@ export default modelEnhance({
                     yield put({
                         type: 'dataManageSuccess',
                         payload: {
+                            ...payload,
                             pageData: response,
                             pageNum: 1,
-                            pageSize: 10,
-                            startDate: '',
-                            endDate: '',
-                            time: '',
-                            partName: '',
-                            line: '',
-                            lotNo: ''
+                            pageSize: 10
                         },
                     });
                 }
-
-                //ApiProductionLineInfo
-                console.log('pageData:',response)
             } catch (e) {
                 console.log(e)
             }
 
 
-            const result = yield call(ApiProductionLineInfo, {
+            const result = yield call(ApiLineInfo, {
                 dictType: 'warehouse_line',
                 pageNum: '',
                 pageSize: ''
@@ -101,7 +95,7 @@ export default modelEnhance({
                 });
             }
 
-            const data = yield call(ApiProductionLineInfo, {
+            const data = yield call(ApiLineInfo, {
                 dictType: 'warehouse_partName',
                 pageNum: '',
                 pageSize: ''
@@ -135,9 +129,9 @@ export default modelEnhance({
                         pageData: response,
                         pageNum: payload.pageNum,
                         pageSize: payload.pageSize,
-                        startDate: payload.startDate || '',
-                        endDate: payload.endDate || '',
-                        time: payload.time || '',
+                        startDate: payload.startDate,
+                        endDate: payload.endDate,
+                        time: payload.time,
                         partName: payload.partName || '',
                         line: payload.line || '',
                         lotNo: payload.lotNo || ''

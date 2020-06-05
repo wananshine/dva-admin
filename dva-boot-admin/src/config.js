@@ -14,7 +14,7 @@ export default {
     /**
      * HTML的title模板
      */
-    htmlTitle: 'jianghaiping - {title}',
+    htmlTitle: 'MuRata - {title}',
 
     /**
      * 系统通知

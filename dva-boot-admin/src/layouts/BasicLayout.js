@@ -202,6 +202,7 @@ export default class BasicLayout extends React.PureComponent {
     const { routerData, location, global } = this.props;
     const { menu, flatMenu } = global;
     const { childRoutes } = routerData;
+    console.log('childRoutes:',this.props);
     const classnames = cx('basic-layout', 'full-layout', {
       fixed: theme.layout && theme.layout.indexOf('fixedSidebar') !== -1,
       'fixed-header':
@@ -280,7 +281,9 @@ export default class BasicLayout extends React.PureComponent {
             onCollapse={this.toggleRightSide}
           />
         </Layout>
-        <SkinToolbox onChangeTheme={this.onChangeTheme} theme={theme} />
+
+        {/*主题组件*/}
+        {/*<SkinToolbox onChangeTheme={this.onChangeTheme} theme={theme} />*/}
       </Layout>
     );
   }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'dva';
-import { Layout, Card, Row, Col, Form, DatePicker, Input, Button, Select, Divider, Table, Tag, Space, Pagination   } from 'antd';
+import { Layout, Card, Row, Col, Form, DatePicker, TimePicker, Input, Button, Select, Divider, Table, Tag, Space, Pagination   } from 'antd';
 import moment from 'moment';
 import BaseComponent from 'components/BaseComponent';
 import ExportJsonExcel from 'js-export-excel';
@@ -68,7 +68,7 @@ export default class extends BaseComponent {
               sheetFilter: ['品名', 'Line', 'LotNo', '日期', '导入时间'],  //excel文件中需显示的列数据
               sheetHeader: ['品名', 'Line', 'LotNo', '日期', '导入时间'],  //excel文件中每列的表头名称
           }
-      ]
+      ];
       let toExcel = new ExportJsonExcel(option);  //生成excel文件
       toExcel.saveExcel();  //下载excel文件
   }
@@ -76,6 +76,7 @@ export default class extends BaseComponent {
   //分页
   onChange(pageNumber, pageSize) {
       const { DataSourceManage, dispatch } = this.props;
+      console.log('分页:', DataSourceManage);
       dispatch({
           type: 'DataSourceManage/getPageInfo',
           payload: {
@@ -89,17 +90,21 @@ export default class extends BaseComponent {
   //查询
   onFinish = values => {
       const { DataSourceManage, dispatch } = this.props;
-      const startData = [undefined].includes(values.datepicker) ? this.getStartDate() : ([null].includes(values.datepicker) ? '' : values.datepicker[0]._d.toLocaleDateString().replace(/\//g,"."));
-      const endData = [undefined].includes(values.datepicker) ? this.getEndData() : ([null].includes(values.datepicker) ? '' : values.datepicker[1]._d.toLocaleDateString().replace(/\//g,"."));
+      const startDate = [undefined].includes(values.datepicker) ? this.getStartDate() : ([null].includes(values.datepicker) ? '' : values.datepicker[0]._d.toLocaleDateString().replace(/\//g,"."));
+      const endDate = [undefined].includes(values.datepicker) ? this.getEndData() : ([null].includes(values.datepicker) ? '' : values.datepicker[1]._d.toLocaleDateString().replace(/\//g,"."));
+      const time = [undefined, null].includes(values.time) ? '' : moment(values.time).format('HH:mm');
 
       const object = {
-          startDate: startData || '',
-          endDate: endData || '',
-          time: values.time || '',
+          pageNum: 1,
+          startDate: startDate,
+          endDate: endDate,
+          time: time,
           partName: values.partName || '',
           line: values.lineId || '',
           lotNo: values.lotNo || ''
       };
+
+      console.log('object: ',object);
 
       dispatch({
           type: 'DataSourceManage/getPageInfo',
@@ -134,11 +139,14 @@ export default class extends BaseComponent {
       const lineOptions = (lineData && lineData.lineOptions) || [];
       const pNameOptions = (pNameData && pNameData.pNameOptions) || [];
 
-      console.log('DataSourceManage:', DataSourceManage);
+      console.log('render:', DataSourceManage);
 
+
+      //日期格式
+      const dateFormat = 'YYYY.MM.DD';
 
       //时间格式
-      const dateFormat = 'YYYY.MM.DD';
+      const timeFormat = 'HH:mm';
 
       //表数据
       const dataSource = rows && rows.map((v, i)=>{
@@ -148,18 +156,6 @@ export default class extends BaseComponent {
 
       //表头
       const columns = createColumns(this, employees);
-
-      const timeOptions = [
-          "01:00","02:00","03:00","04:00","05:00","06:00","07:00","08:00","09:00","10:00",
-          "11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00",
-          "21:00","22:00","23:00","00:00"
-      ];
-
-      const lotNos = [
-          { txt: 'XSW', val: 'XSW' },
-          { txt: 'XAW', val: 'XAW' },
-      ];
-
 
 
     return (
@@ -177,14 +173,7 @@ export default class extends BaseComponent {
                           </Col>
                           <Col span={6}>
                               <Form.Item label="时间：" name="time">
-                                  {/*defaultValue=""*/}
-                                  <Select placeholder="请选择时间">
-                                      {
-                                          timeOptions.map((v, i)=>{
-                                              return <Option key={v} value={v}>{v}</Option>
-                                          })
-                                      }
-                                  </Select>
+                                  <TimePicker defalutValue='' format={timeFormat} />
                               </Form.Item>
                           </Col>
                       </Row>
@@ -217,13 +206,6 @@ export default class extends BaseComponent {
                           <Col span={6}>
                               <Form.Item label="LotNo：" name="lotNo">
                                   <Input placeholder="请输入LotNo" autoComplete="off" />
-                                  {/*<Select defaultValue="" placeholder="请选择LotNo">*/}
-                                      {/*{*/}
-                                          {/*lotNos.map((v, i)=>{*/}
-                                              {/*return <Option key={v.val} value={v.val}>{v.txt}</Option>*/}
-                                          {/*})*/}
-                                      {/*}*/}
-                                  {/*</Select>*/}
                               </Form.Item>
                           </Col>
                       </Row>

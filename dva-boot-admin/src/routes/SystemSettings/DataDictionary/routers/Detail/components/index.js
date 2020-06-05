@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'dva';
-import { Layout, Descriptions } from 'antd';
+import { Layout, Descriptions, Card } from 'antd';
 import BaseComponent from 'components/BaseComponent';
 const { Content } = Layout;
 
@@ -19,22 +19,25 @@ export default class extends BaseComponent {
 
     return (
       <Layout className="full-layout page blank-page">
-          {
-              dictInfo ?
-                  <Content>
-                      <Descriptions title={dictInfo.dictType}>
-                          <Descriptions.Item label="createBy">{dictInfo.createBy}</Descriptions.Item>
-                          <Descriptions.Item label="dictLabel">{dictInfo.dictLabel}</Descriptions.Item>
-                          <Descriptions.Item label="dictValue">{dictInfo.dictValue}</Descriptions.Item>
-                          <Descriptions.Item label="createTime">{dictInfo.createTime}</Descriptions.Item>
-                          <Descriptions.Item label="remark">{dictInfo.remark}</Descriptions.Item>
-                          <Descriptions.Item label="status">{dictInfo.status}</Descriptions.Item>
-                      </Descriptions>
-                  </Content>
-                  :
-                  <Content>&nbsp;</Content>
-          }
+          {/*<Card>*/}
+              {
+                  dictInfo ?
+                      <Content>
 
+                              <Descriptions title={dictInfo.dictType}>
+                                  <Descriptions.Item label="createBy">{dictInfo.createBy}</Descriptions.Item>
+                                  <Descriptions.Item label="dictLabel">{dictInfo.dictLabel}</Descriptions.Item>
+                                  <Descriptions.Item label="dictValue">{dictInfo.dictValue}</Descriptions.Item>
+                                  <Descriptions.Item label="createTime">{dictInfo.createTime}</Descriptions.Item>
+                                  <Descriptions.Item label="remark">{dictInfo.remark}</Descriptions.Item>
+                                  <Descriptions.Item label="status">{dictInfo.status}</Descriptions.Item>
+                              </Descriptions>
+
+                      </Content>
+                      :
+                      <Content>&nbsp;</Content>
+              }
+          {/*</Card>*/}
       </Layout>
     );
   }

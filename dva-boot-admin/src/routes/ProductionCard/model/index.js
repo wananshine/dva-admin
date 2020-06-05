@@ -3,7 +3,7 @@ import { ApiDataProduct } from '../service';
 import $$ from 'cmn-utils';
 import modelEnhance from '@/utils/modelEnhance';
 import PageHelper from '@/utils/pageHelper';
-import { ApiProductionLineInfo } from "../../SystemSettings/ProductionLinePosition/service";
+import { ApiLineInfo } from "../../SystemSettings/LineInformation/service";
 
 let LOADED = false;
 export default modelEnhance({
@@ -48,20 +48,15 @@ export default modelEnhance({
                 yield put({
                     type: 'dataProductSuccess',
                     payload: {
+                        ...payload,
                         pageData: response,
                         pageNum: 1,
-                        pageSize: 10,
-                        startDate: '',
-                        endDate: '',
-                        time: '',
-                        partName: '',
-                        line: '',
-                        lotNo: ''
+                        pageSize: 10
                     },
                 });
             }
 
-            const result = yield call(ApiProductionLineInfo, {
+            const result = yield call(ApiLineInfo, {
                 dictType: 'warehouse_line',
                 pageNum: '',
                 pageSize: ''
@@ -76,7 +71,7 @@ export default modelEnhance({
                 });
             }
 
-            const data = yield call(ApiProductionLineInfo, {
+            const data = yield call(ApiLineInfo, {
                 dictType: 'warehouse_partName',
                 pageNum: '',
                 pageSize: ''

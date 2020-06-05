@@ -3,8 +3,8 @@ import PageHelper from '@/utils/pageHelper';
 import { routerRedux } from 'dva';
 import $$ from 'cmn-utils';
 import { ApiWareHouseList, ApiWareHouseSave, ApiWareHouseUpdate, ApiWareHouseDel } from '../service';
-import {ApiLocInfo, ApiProductionLineInfo, ApiProductionLineLoc2Info} from "../../SystemSettings/ProductionLinePosition/service";
-
+import { ApiLocInfo, ApiProductionLineLoc2Info} from "../../SystemSettings/ProLinePosition/service";
+import { ApiLineInfo } from "../../SystemSettings/LineInformation/service";
 
 
 /**
@@ -34,8 +34,6 @@ export default modelEnhance({
                             pageSize: 10,
                             startDate: new Date().toLocaleDateString().replace(/\//g,"."),
                             endDate: new Date().toLocaleDateString().replace(/\//g,"."),
-                            // startDate:'',
-                            // endDate: '',
                             partName: '',
                             line: '',
                         },
@@ -66,7 +64,7 @@ export default modelEnhance({
                 });
             }
 
-            const result = yield call(ApiProductionLineInfo, {
+            const result = yield call(ApiLineInfo, {
                 dictType: 'warehouse_line',
                 pageNum: '',
                 pageSize: ''
@@ -81,7 +79,7 @@ export default modelEnhance({
                 })
             }
 
-            const data = yield call(ApiProductionLineInfo, {
+            const data = yield call(ApiLineInfo , {
                 dictType: 'warehouse_partName',
                 pageNum: '',
                 pageSize: ''

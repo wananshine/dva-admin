@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'dva';
-import { Layout, Card, Row, Col, Form, DatePicker, Input, Button, Select, Divider, Table, Tag, Space, Pagination   } from 'antd';
+import { Layout, Card, Row, Col, Form, DatePicker, TimePicker, Input, Button, Select, Divider, Table, Tag, Space, Pagination   } from 'antd';
 import { CheckSquareOutlined, CloseSquareOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import Panel from 'components/Panel';
@@ -64,13 +64,15 @@ export default class extends BaseComponent {
     onFinish = values => {
 
         const { dataCheck, dispatch } = this.props;
-        const startData = [undefined].includes(values.datepicker) ? this.getStartDate() : ([null].includes(values.datepicker) ? '' : values.datepicker[0]._d.toLocaleDateString().replace(/\//g,"."));
-        const endData = [undefined].includes(values.datepicker) ? this.getEndData() : ([null].includes(values.datepicker) ? '' : values.datepicker[1]._d.toLocaleDateString().replace(/\//g,"."));
+        const startDate = [undefined].includes(values.datepicker) ? this.getStartDate() : ([null].includes(values.datepicker) ? '' : moment(values.datepicker[0]).format('YYYY.MM.DD'));
+        const endDate = [undefined].includes(values.datepicker) ? this.getEndData() : ([null].includes(values.datepicker) ? '' : moment(values.datepicker[1]).format('YYYY.MM.DD'));
+        const time = [undefined, null].includes(values.time) ? '' : moment(values.time).format('HH:mm');
 
         const object = {
-            startDate: startData || '',
-            endDate: endData || '',
-            time: values.time || '',
+            pageNum: 1,
+            startDate: startDate,
+            endDate: endDate,
+            time: time,
             partName: values.partName || '',
             line: values.lineId || '',
             lotNo: values.lotNo || ''
@@ -102,7 +104,11 @@ export default class extends BaseComponent {
       const pNameOptions = (pNameData && pNameData.pNameOptions) || [];
 
 
-      const dateFormat = 'YYYY/MM/DD';
+      //日期格式
+      const dateFormat = 'YYYY.MM.DD';
+
+      //时间格式
+      const timeFormat = 'HH:mm';
 
 
       //表数据
@@ -114,12 +120,6 @@ export default class extends BaseComponent {
       const rowSelection = {
           onChange: this.onSelectChange,
       };
-
-      const timeOptions = [
-          "01:00","02:00","03:00","04:00","05:00","06:00","07:00","08:00","09:00","10:00",
-          "11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00",
-          "21:00","22:00","23:00","00:00"
-      ];
 
     return (
       <Layout className="">
@@ -137,13 +137,7 @@ export default class extends BaseComponent {
                           <Col span={6}>
                               <Form.Item label="时间：" name="time">
                                   {/*defaultValue=""*/}
-                                  <Select placeholder="请选择时间">
-                                      {
-                                          timeOptions.map((v, i)=>{
-                                              return <Option key={v} value={v}>{v}</Option>
-                                          })
-                                      }
-                                  </Select>
+                                  <TimePicker defalutValue='' format={timeFormat}  />
                               </Form.Item>
                           </Col>
                       </Row>

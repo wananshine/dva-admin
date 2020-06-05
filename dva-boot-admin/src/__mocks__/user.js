@@ -1,4 +1,4 @@
-import ProductionLinePosition from "../routes/SystemSettings/ProductionLinePosition";
+import ProLinePosition from "../routes/SystemSettings/ProLinePosition";
 import DataDictionary from "../routes/SystemSettings/DataDictionary";
 
 /**
@@ -68,6 +68,11 @@ export default ({fetchMock, delay, mock, toSuccess, toError}) => {
                   name: '数据字典',
                   icon: 'BoxPlotOutlined',
                   path: '/data_dictionary/:detail?',
+              },
+              {
+                  name: '产线信息',
+                  icon: 'NodeIndexOutlined',
+                  path: '/line_information',
               },
               {
                   name: '位置信息',

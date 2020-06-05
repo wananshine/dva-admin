@@ -158,28 +158,28 @@ export default class extends BaseComponent {
 
     //  分页
     onChange(pageNumber, pageSize) {
-      const { warehouse, dispatch } = this.props;
-      dispatch({
+        const { warehouse, dispatch } = this.props;
+        dispatch({
           type: 'warehouse/getPageInfo',
           payload: {
               ...warehouse,
               pageNum: pageNumber,
               pageSize: pageSize
           }
-      });
-      console.log('Page: ', pageNumber, pageSize);
+        });
+        console.log('Page: ', pageNumber, pageSize);
     }
 
     //查询
     onFinish = values => {
       const { warehouse, dispatch } = this.props;
-      const startData = [undefined].includes(values.datepicker) ? this.getStartDate() : ([null].includes(values.datepicker) ? '' : values.datepicker[0]._d.toLocaleDateString().replace(/\//g,"."));
-      const endData = [undefined].includes(values.datepicker) ? this.getEndData() : ([null].includes(values.datepicker) ? '' : values.datepicker[1]._d.toLocaleDateString().replace(/\//g,"."));
+      const startDate = [undefined].includes(values.datepicker) ? this.getStartDate() : ([null].includes(values.datepicker) ? '' : values.datepicker[0]._d.toLocaleDateString().replace(/\//g,"."));
+      const endDate = [undefined].includes(values.datepicker) ? this.getEndData() : ([null].includes(values.datepicker) ? '' : values.datepicker[1]._d.toLocaleDateString().replace(/\//g,"."));
 
       const object = {
           ...warehouse,
-          startDate: startData || '',
-          endDate: endData || '',
+          startDate: startDate || '',
+          endDate: endDate || '',
           partName: values.partName || '',
           line: values.lineId || '',
           locStart: values.locStart || '',
@@ -301,7 +301,7 @@ export default class extends BaseComponent {
                               <Form ref='ModalForm'>
 
                                   <Form.Item label="品名："  {...formItemLayout}>
-                                      <Select defaultValue={formData.partName}  onChange={(val)=>{this.handleChange(val, 'partName')}} placeholder="请输入品名" >
+                                      <Select defaultValue={formData.partName}  onChange={(val)=>{this.handleChange(val, 'partName')}} placeholder="请选择品名" >
                                           {
                                               pNameOptions && pNameOptions.map((v, i)=>{
                                                   return <Option key={i.toString() + `${v.dictCode}`} value={v.dictValue}>{v.dictLabel}</Option>

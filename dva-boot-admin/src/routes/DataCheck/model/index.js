@@ -1,8 +1,7 @@
 import modelEnhance from '@/utils/modelEnhance';
 import $$ from 'cmn-utils';
 import { ApiCheckList } from "../service";
-import { ApiProductionLineInfo } from "../../SystemSettings/ProductionLinePosition/service";
-
+import { ApiLineInfo } from "../../SystemSettings/LineInformation/service";
 
 
 /**
@@ -66,7 +65,7 @@ export default modelEnhance({
                 });
             }
 
-            const result = yield call(ApiProductionLineInfo, {
+            const result = yield call(ApiLineInfo, {
                 dictType: 'warehouse_line',
                 pageNum: '',
                 pageSize: ''
@@ -81,7 +80,7 @@ export default modelEnhance({
                 });
             }
 
-            const data = yield call(ApiProductionLineInfo, {
+            const data = yield call(ApiLineInfo, {
                 dictType: 'warehouse_partName',
                 pageNum: '',
                 pageSize: ''

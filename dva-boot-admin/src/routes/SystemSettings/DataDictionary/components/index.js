@@ -256,8 +256,8 @@ export default class extends BaseComponent {
                                         }
                                     </Select>
                                 </Form.Item>
-                                <Form.Item label="数据代码：" name="dictValue">
-                                    <Input defaultValue={formData.dictValue} onChange={(val)=>{this.handleInput(val, 'dictValue')}} placeholder="请输入数据代码" autoComplete="off" />
+                                <Form.Item label="数&nbsp;&nbsp;据&nbsp;值：" name="dictValue">
+                                    <Input defaultValue={formData.dictValue} onChange={(val)=>{this.handleInput(val, 'dictValue')}} placeholder="请输入数据值" autoComplete="off"  />
                                 </Form.Item>
                                 <Form.Item label="数据名称："  name="dictLabel">
                                     <Input defaultValue={formData.dictLabel} onChange={(val)=>{this.handleInput(val, 'dictLabel')}} placeholder="请输入数据名称" autoComplete="off" />

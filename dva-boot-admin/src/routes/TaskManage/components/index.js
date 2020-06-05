@@ -73,8 +73,10 @@ export default class extends BaseComponent {
                 taskType: record.taskType,
                 taskLevel: record.taskLevel,
                 taskCode: record.taskCode,
-                startLoc: record.startLoc,
-                endLoc: record.endLoc
+                // startLoc: record.startLoc,
+                // endLoc: record.endLoc
+                loc1: record.loc1,
+                loc2: record.loc2
             }) || {}
         });
     };
@@ -140,10 +142,14 @@ export default class extends BaseComponent {
 
   onChange(pageNumber, pageSize) {
       const { TaskManageData, dispatch } = this.props;
+      // const startDate = [undefined, null, ''].includes(TaskManageData.startDate) ? this.getStartDate() : TaskManageData.startDate;
+      // const endDate = [undefined, null, ''].includes(TaskManageData.endDate) ? this.getEndData() : TaskManageData.endDate;
       dispatch({
           type: 'TaskManageData/getPageInfo',
           payload: {
               ...TaskManageData,
+              // startDate: startDate,
+              // endDate: endDate,
               pageNum: pageNumber,
               pageSize: pageSize
           }
@@ -153,13 +159,13 @@ export default class extends BaseComponent {
 
     //查询
     onFinish = values => {
-        console.log(values)
         const { TaskManageData, dispatch } = this.props;
-        const startData = [undefined].includes(values.datepicker) ? this.getStartDate() : ([null].includes(values.datepicker) ? '' : values.datepicker[0]._d.toLocaleDateString().replace(/\//g,"."));
-        const endData = [undefined].includes(values.datepicker) ? this.getEndData() : ([null].includes(values.datepicker) ? '' : values.datepicker[1]._d.toLocaleDateString().replace(/\//g,"."));
+        const startDate = [undefined].includes(values.datepicker) ? this.getStartDate() : ([null].includes(values.datepicker) ? '' : values.datepicker[0]._d.toLocaleDateString().replace(/\//g,"."));
+        const endDate = [undefined].includes(values.datepicker) ? this.getEndData() : ([null].includes(values.datepicker) ? '' : values.datepicker[1]._d.toLocaleDateString().replace(/\//g,"."));
         const object = {
-            startDate: startData || '',
-            endDate: endData || '',
+            pageNum: 1,
+            startDate: startDate,
+            endDate: endDate,
             taskType: values.taskType || '',
             taskLevel: values.taskLevel || '',
             taskCode: values.taskCode || ''
@@ -369,7 +375,7 @@ export default class extends BaseComponent {
                                   </Select>
                               </Form.Item>
                               <Form.Item label="起始位置：" {...formItemLayout}>
-                                  <Select defaultValue={formData.startLoc} onChange={(val)=>{this.handleChange(val, 'startLoc')}} placeholder="请输入起始位置">
+                                  <Select defaultValue={formData.loc1} onChange={(val)=>{this.handleChange(val, 'loc1')}} placeholder="请输入起始位置">
                                       {
                                           locOptions && locOptions.map((v, i)=>{
                                               return <Option key={v.locationId} value={v.locationId}>{v.locationName}</Option>
@@ -378,7 +384,7 @@ export default class extends BaseComponent {
                                   </Select>
                               </Form.Item>
                               <Form.Item label="目的位置：" {...formItemLayout}>
-                                  <Select defaultValue={formData.endLoc} onChange={(val)=>{this.handleChange(val, 'endLoc')}} placeholder="请输入目的位置">
+                                  <Select defaultValue={formData.loc2} onChange={(val)=>{this.handleChange(val, 'loc2')}} placeholder="请输入目的位置">
                                       {
                                           locOptions && locOptions.map((v, i)=>{
                                               return <Option key={v.locationId} value={v.locationId}>{v.locationName}</Option>
