@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { connect } from 'dva';
 import { Layout, Card, Row, Col, Form, DatePicker, Input, Select, Button, Divider, Table, Tag, Space, Pagination, Modal, Icon   } from 'antd';
-import { DeleteOutlined, EditOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, ExclamationCircleOutlined, CloseCircleOutlined, StopOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import Panel from 'components/Panel';
 import BaseComponent from 'components/BaseComponent';
@@ -41,7 +41,6 @@ export default class extends BaseComponent {
 
   onReset(){
       this.formRef.current.resetFields();
-      console.log(1)
   }
 
     //删除数据
@@ -61,6 +60,28 @@ export default class extends BaseComponent {
             onCancel() {}
         });
     }
+
+
+    //取消任务
+    onCancelRecords(record){
+        console.log(record)
+        const { dispatch } = this.props;
+        Modal.confirm({
+            title: '注意',
+            icon: <ExclamationCircleOutlined />,
+            content: '是否确认取消此笔数据？',
+            onOk: () => {
+                dispatch({
+                    type: 'TaskManageData/cancel',
+                    payload: {
+                        taskCode: record.taskCode
+                    }
+                });
+            },
+            onCancel() {}
+        });
+    }
+
 
     //新增/编辑Modal Show
     onEdit = record =>{
@@ -160,6 +181,7 @@ export default class extends BaseComponent {
     //查询
     onFinish = values => {
         const { TaskManageData, dispatch } = this.props;
+        console.log('TaskManageData:', TaskManageData)
         const startDate = [undefined].includes(values.datepicker) ? this.getStartDate() : ([null].includes(values.datepicker) ? '' : values.datepicker[0]._d.toLocaleDateString().replace(/\//g,"."));
         const endDate = [undefined].includes(values.datepicker) ? this.getEndData() : ([null].includes(values.datepicker) ? '' : values.datepicker[1]._d.toLocaleDateString().replace(/\//g,"."));
         const object = {
@@ -240,13 +262,14 @@ export default class extends BaseComponent {
           },
           {
               title: '执行状态',
-              dataIndex: 'runResult',
+              dataIndex: 'runResult',  //0：任务开始，1：任务完成 ，2：走出储位，3：任务失败
               render: (tags) => (
                   <span>
                       { [null, ''].includes(tags) && <Tag>{tags}</Tag> }
-                      { tags && [0, '0'].includes(tags) && <Tag color="#ffc107">{tags}</Tag> }
-                      { tags && [1, '1'].includes(tags) && <Tag color="#ff1100">{tags}</Tag> }
-                      { tags && [2, '2'].includes(tags) && <Tag color="#00bd08">{tags}</Tag> }
+                      { tags && [0, '0'].includes(tags) && <Tag color="#ffc107">任务开始</Tag> }
+                      { tags && [1, '1'].includes(tags) && <Tag color="#ff1100">任务完成</Tag> }
+                      { tags && [2, '2'].includes(tags) && <Tag color="#00bd22">走出储位</Tag> }
+                      { tags && [3, '3'].includes(tags) && <Tag color="#00bd08">任务失败</Tag> }
                   </span>
 
               )
@@ -262,6 +285,13 @@ export default class extends BaseComponent {
                       <Button type="link" tooltip="删除" onClick={()=>{ this.onDeleteRecords(record) }} style={{fontSize: '18px'}}>
                           <DeleteOutlined />
                       </Button>
+                      {
+                          (!['1', 1].includes(record.runResult)) &&
+                          <Button type="link" tooltip="取消" onClick={()=>{ this.onCancelRecords(record) }} style={{fontSize: '18px'}}>
+                              <CloseCircleOutlined />
+                          </Button>
+                      }
+
                   </div>
               ),
           }

@@ -1,7 +1,7 @@
 import modelEnhance from '@/utils/modelEnhance';
 import { routerRedux } from 'dva';
 import $$ from 'cmn-utils';
-import { ApiTaskList, ApitaskSave, ApitaskUpdate, ApiTaskDel, ApiTaskOption } from '../service';
+import {ApiTaskList, ApitaskSave, ApitaskUpdate, ApiTaskDel, ApiTaskOption, ApiTaskCancel} from '../service';
 import { ApiLocationInfo } from "../../SystemSettings/LocInformation/service";
 
 
@@ -193,6 +193,22 @@ export default modelEnhance({
             // });
             // success();
         },
+
+        //取消
+        *cancel({ payload }, { call, put, select }){
+            try {
+                const response = yield call(ApiTaskCancel, payload);
+                const res = yield select(state => state.TaskManageData);
+                yield put({
+                    type: 'getPageInfo',
+                    payload: res
+                });
+
+            } catch (e) {
+
+            }
+        },
+
         // 获取员工列表
         *getEmployees({ payload }, { call, put }) {
             // yield put({

@@ -2,7 +2,7 @@ import modelEnhance from '@/utils/modelEnhance';
 import $$ from 'cmn-utils';
 import { ApiCheckList } from "../service";
 import { ApiLineInfo } from "../../SystemSettings/LineInformation/service";
-
+import { ApiTaskCancel } from "../../TaskManage/service";
 
 /**
  * 当第一次加载完页面时为true
@@ -163,6 +163,20 @@ export default modelEnhance({
             // } catch (e) {
             //
             // }
+        },
+        //取消
+        *cancel({ payload }, { call, put, select }){
+            try {
+                const response = yield call(ApiTaskCancel, payload);
+                const res = yield select(state => state.dataCheck);
+                yield put({
+                    type: 'getPageInfo',
+                    payload: res
+                });
+
+            } catch (e) {
+
+            }
         },
         // 获取员工列表
         *getEmployees({ payload }, { call, put }) {

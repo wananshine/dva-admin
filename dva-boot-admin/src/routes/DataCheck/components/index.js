@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { connect } from 'dva';
-import { Layout, Card, Row, Col, Form, DatePicker, TimePicker, Input, Button, Select, Divider, Table, Tag, Space, Pagination   } from 'antd';
+import { Layout, Card, Row, Col, Form, DatePicker, TimePicker, Input, Button, Select, Divider, Table, Modal, Tag, Space, Pagination   } from 'antd';
 import { CheckSquareOutlined, CloseSquareOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import Panel from 'components/Panel';
@@ -24,7 +24,9 @@ export default class extends BaseComponent {
     formRef = React.createRef();
 
     state = {
+        taskCode: ''
     };
+
 
     //获取今日之前-5天日期
     getStartDate(){
@@ -44,7 +46,30 @@ export default class extends BaseComponent {
     //取消任务
     onCancelTask(){
         const { dataCheck, dispatch } = this.props;
-        console.log('取消任务')
+        const { taskCode } = this.state;
+
+        if([undefined, null, ''].includes(taskCode)){
+
+            let secondsToGo = 3;
+            const modal = Modal.warning({
+                title: '取消提示',
+                content: '请选择需要取消的任务选项',
+            });
+            setTimeout(() => {
+                modal.destroy();
+            }, secondsToGo * 1000);
+            return;
+        }
+
+        dispatch({
+            type: 'dataCheck/cancel',
+            payload: {
+                taskCode: taskCode
+            }
+        });
+        this.setState({
+            taskCode: ''
+        })
     }
 
     //分页
@@ -58,6 +83,7 @@ export default class extends BaseComponent {
                 pageSize: pageSize
             }
         });
+
     }
 
     //查询
@@ -118,7 +144,15 @@ export default class extends BaseComponent {
       });
 
       const rowSelection = {
-          onChange: this.onSelectChange,
+          onChange: (selectedRowKeys, selectedRows) => {
+              this.setState({
+                  taskCode: selectedRows[0] && selectedRows[0]['taskCode'] || ''
+              });
+          },
+          getCheckboxProps: record => ({
+              disabled: ([''].includes(this.state.taskCode) && (![null, ''].includes(record.taskCode))) ? false : (this.state.taskCode === record.taskCode ? false : true),
+              // name: record.name,
+          }),
       };
 
     return (
